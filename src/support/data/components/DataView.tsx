@@ -48,7 +48,7 @@ export interface DataViewCellClickContext {
 export type DataViewTitleResolver = (row: any) => string;
 export type DataViewPipeHandler = (value: any, row: any) => any;
 
-export type DataViewCellTextColor = 'error' | 'success' | 'warning';
+export type DataViewCellTextColor = 'error' | 'success' | 'warning' | null | undefined;
 export type DataViewCellTextColorResolver = (value: any, row: any) => DataViewCellTextColor;
 export type DataViewOnClickCellHandler = (row: any, context: DataViewCellClickContext) => void;
 
@@ -135,7 +135,10 @@ function resolveValueClasses(row: any, column: DataViewColumn, classes: {[name: 
 
     if (column.color) {
         const color = column.color(resolveValue(row, column), row);
-        result.push(classes[`cellTextColor${ucFirst(color)}`])
+
+        if (color) {
+            result.push(classes[`cellTextColor${ucFirst(color)}`])
+        }
     }
 
     return result.join(' ');
