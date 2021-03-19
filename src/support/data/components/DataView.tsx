@@ -57,6 +57,7 @@ export interface DataViewColumn {
     name: string;
     format?: DataViewCellFormat;
     pipe?: DataViewPipeHandler;
+    component?: (row: any) => ReactElement | null | undefined;
     color?: DataViewCellTextColorResolver;
     canClick?: (row: any) => boolean; 
     onClick?: DataViewOnClickCellHandler
@@ -225,6 +226,17 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
                                 return (<TableRow key={`r-${i}`}>
                                     {columns.map((column, i) => {
+                                        
+                                        if (typeof column.component === 'function') {
+                                            const component = column.component(row);
+
+                                            if (!component) {
+                                                return (<TableCell key={`c-${i}`}></TableCell>);
+                                            }
+
+                                            return (<TableCell key={`c-${i}`}>{React.cloneElement(component)}</TableCell>);
+                                        }
+
                                         return (<TableCell
                                             key={`c-${i}`}
                                             align={resolveAlignment(column)}>

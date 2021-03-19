@@ -1,8 +1,9 @@
 import React, {Component, ReactElement, Fragment} from 'react';
 import {Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, FormLabel, RadioGroup, Radio} from "@material-ui/core";
-import {clone, cloneExcept, cloneWith, hasField, objectEmpty, readField, tryField} from "../../random/utils";
+import {clone, cloneExcept, cloneWith, hasField, hashToOptions, objectEmpty, optionsToHash, readField, tryField} from "../../random/utils";
 import {isBlank} from "../../validation/utils";
 import FormHelperText from '@material-ui/core/FormHelperText';
+import { Autocomplete } from '@material-ui/lab';
 
 export type DataFormResult = {[field: string]: any};
 export type DataFormErrors = {[field: string]: any};
@@ -136,7 +137,7 @@ function renderText(control: DataFormControl, context: DataFormRenderContext): R
         value = '';
     }
 
-    return (<TextField name={control.name}
+    return (<TextField autoComplete="off" name={control.name}
                        variant={tryField(control, 'extra.variant', 'standard')}
                        type={tryField(control, 'extra.type', 'input')}
                        multiline={tryField(control, 'extra.multiline', false)}
@@ -174,6 +175,41 @@ function renderSelect(control: DataFormControl, context: DataFormRenderContext):
         </Select>
         {error && (<FormHelperText>{error}</FormHelperText>)}
     </FormControl>);
+}
+
+function renderAutocomplete(control: DataFormControl, context: DataFormRenderContext): ReactElement {
+
+    const availableValues = hashToOptions(control.values!);
+    
+    const error = resolveError(control, context);
+
+    let providedValues = resolveValue(control, context);
+
+    if (typeof providedValues === 'undefined' || providedValues === null) {
+        providedValues = {};
+    }
+
+    providedValues = hashToOptions(providedValues);
+
+    return (<FormControl fullWidth error={!!error}><Autocomplete 
+        disabled={control.disabled}
+        multiple={control.extra?.multiple}
+        options={availableValues}
+        getOptionLabel={(option) => option.title}
+        onChange={(e: any, v: any) => context.onChange(optionsToHash(v))}
+        value={providedValues}
+        getOptionSelected={(option, againstOption) => option.value === againstOption.value}
+        filterSelectedOptions
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            error={!!error}
+            variant="standard"
+            label={control.label}
+          />
+        )} />
+        {error && (<FormHelperText>{error}</FormHelperText>)}
+        </FormControl>);
 }
 
 function renderRadio(control: DataFormControl, context: DataFormRenderContext): ReactElement {
@@ -318,6 +354,7 @@ class DataForm extends Component<DataFormProps, DataFormState> {
     private renderers: {[name: string]: DataFormControlRenderer} = {
         'text': renderText,
         'select': renderSelect,
+        'autocomplete': renderAutocomplete,
         'checkbox': renderCheckbox,
         'radio': renderRadio
     };

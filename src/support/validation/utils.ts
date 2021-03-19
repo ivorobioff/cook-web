@@ -1,6 +1,11 @@
 import * as EmailValidator from 'email-validator';
 
 export function isBlank(value: any): boolean {
+
+    if (Array.isArray(value) && value.length === 0) {
+        return true;
+    }
+
     return value === null
         || typeof value === 'undefined'
         || (typeof value === 'string' && value.trim().length === 0);
