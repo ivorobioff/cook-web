@@ -73,7 +73,8 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
                     ingredient
                 }
             });
-        }
+        },
+        disabled: ingredient => ingredient.usedByDish
     }];
 
     private paged: DataViewPaged = {

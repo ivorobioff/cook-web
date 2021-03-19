@@ -3,6 +3,7 @@ export default interface Ingredient {
     name: string;
     quantity: number;
     unit: string;
+    usedByDish?: boolean;
 }
 
 export interface IngredientToPersist {
