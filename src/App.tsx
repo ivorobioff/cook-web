@@ -9,18 +9,20 @@ import forbiddenErrorHandler from './support/auth/forbiddenErrorHandler';
 import Environment from './support/env/Environment';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 import { cloneWith } from './support/random/utils';
-import { SubjectService } from './app/services/SubjectService';
-import SubjectView from './app/components/page/SubjectView';
 import { createBrowserHistory } from 'history';
 import AuthLayout from './support/auth/components/AuthLayout';
 import Login  from './support/auth/components/Login';
 import PrivateRoute from './support/auth/components/PrivateRoute';
+import IngredientService from './app/services/IngredientService';
+import IngredientView from './app/components/page/IngredientView';
+import DishView from './app/components/page/DishView';
+import ScheduleView from './app/components/page/ScheduleView';
 
 const container = new Container();
 
 const site = {
-    name: 'Opi',
-    url: 'http://opi.familythings.cloud'
+    name: 'Cook',
+    url: 'http://cook.familythings.cloud'
 };
 
 container.registerFactory('env', () => {
@@ -30,7 +32,7 @@ container.registerFactory('env', () => {
     }, window.__ENV__);
 });
 
-container.registerType(SubjectService);
+container.registerType(IngredientService);
 container.registerType(Authenticator);
 
 container.registerFactory('history', () => createBrowserHistory());
@@ -54,10 +56,16 @@ container.get(Authenticator).watch();
 const theme = createMuiTheme({
     palette: {
         primary: {
-            main: '#bf360c',
+            main: '#689f38',
+            light: '#99d066',
+            dark: '#387002',
+            contrastText: '#ffffff'
         },
         secondary: {
-            main: '#bf360c'
+            main: '#00acc1',
+            light: '#5ddef4',
+            dark: '#007c91',
+            contrastText: '#ffffff'
         },
     }
 });
@@ -74,9 +82,19 @@ class App extends Component<AppProps, AppState> {
     render() {
         return (<ThemeProvider theme={theme}><Router history={container.get('history')}>
             <Switch>
-                <PrivateRoute container={container} exact path={['/', '/subjects']}>
+                <PrivateRoute container={container} exact path={['/', '/schedules']}>
                     <AppLayout container={container}>
-                        <SubjectView container={container} />
+                        <ScheduleView container={container} />
+                    </AppLayout>
+                </PrivateRoute>
+                <PrivateRoute container={container} exact path={['/dishes']}>
+                    <AppLayout container={container}>
+                        <DishView container={container} />
+                    </AppLayout>
+                </PrivateRoute>
+                <PrivateRoute container={container} exact path={['/ingredients']}>
+                    <AppLayout container={container}>
+                        <IngredientView container={container} />
                     </AppLayout>
                 </PrivateRoute>
                 <Route exact path="/sign-in">

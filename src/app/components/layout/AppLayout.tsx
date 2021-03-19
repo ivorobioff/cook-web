@@ -1,19 +1,28 @@
 import React, { Component } from 'react';
 import FlameLayout, { UserMenuOptions } from '../../../support/layout/components/FlameLayout';
-import SubjectIcon from '@material-ui/icons/Subject';
+import ScatterPlotIcon from '@material-ui/icons/ScatterPlot';
+import RestaurantIcon from '@material-ui/icons/Restaurant';
+import ScheduleIcon from '@material-ui/icons/Schedule';
 import Container from '../../../support/ioc/Container';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Authenticator } from '../../../support/auth/Authenticator';
 import { cloneWith } from '../../../support/random/utils';
 import Environment from '../../../support/env/Environment';
 
-const title = "Opi";
-
 const mainMenu = {
     items: [{
-        title: 'Subjects',
+        title: 'Schedules',
         path: '/',
-        icon: <SubjectIcon />
+        icon: <ScheduleIcon />
+    },
+    {
+        title: 'Dishes',
+        path: '/dishes',
+        icon: <RestaurantIcon />
+    },{
+        title: 'Ingredients',
+        path: '/ingredients',
+        icon: <ScatterPlotIcon />
     }]
 }
 
@@ -64,7 +73,7 @@ class AppLayout extends Component<AppLayoutProps, AppLayoutState> {
         return (<FlameLayout 
             mainMenu={mainMenu} 
             site={this.env.site} 
-            title={title} 
+            title={this.env.site.name} 
             userMenu={userMenu}>{children}</FlameLayout>);
     }
 
