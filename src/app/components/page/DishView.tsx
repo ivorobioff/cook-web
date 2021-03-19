@@ -11,6 +11,7 @@ import { DataFormControl, DataFormResult } from "../../../support/form/component
 import { cloneArrayWith, cloneWith } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
+import IngredientService from "../../services/IngredientService";
 
 
 interface DishProps {
@@ -20,6 +21,7 @@ interface DishProps {
 
 interface DishState {
     data: Dish[],
+    ingredients: Ingredient[],
     edit?: {
         ingredient: Ingredient;
         open: boolean;
@@ -41,10 +43,18 @@ const styles = (theme: Theme) => createStyles({
     },
 });
 
+function ingredientsToValues(ingredients: Ingredient[]): {[name: string]: string} {
+    const result: {[name: string]: string} = {};
+    
+    ingredients.forEach(ingredient => result[ingredient.id] = `${ingredient.name} - ${ingredient.quantity} ${ingredient.unit}`);
+
+    return result;
+}
 
 class DishView extends Component<DishProps, DishState> {
 
     private dishService: DishService;
+    private ingredientService: IngredientService;
 
     private paged: DataViewPaged = {
         onChange: (offset, limit) => {
@@ -76,12 +86,21 @@ class DishView extends Component<DishProps, DishState> {
         super(props);
 
         this.dishService = props.container.get(DishService);
+        this.ingredientService = props.container.get(IngredientService);
 
         this.state = {
-            data: []
+            data: [],
+            ingredients: []
         }
     }
 
+    componentDidMount() {
+        this.ingredientService.getAll(0, 1000).subscribe(ingredients => {
+            this.setState({
+                ingredients
+            })
+        });
+    }
     
     private renderIngredient(ingredient: Ingredient, i: number): ReactElement {
 
@@ -117,7 +136,8 @@ class DishView extends Component<DishProps, DishState> {
         );
     }
 
-    private defineCreatorControls(): DataFormControl[] {
+    private defineCreatorControls(ingredients: Ingredient[] = []): DataFormControl[] {
+
         return [{
             type: 'text',
             label: 'Name',
@@ -129,18 +149,15 @@ class DishView extends Component<DishProps, DishState> {
             name: 'notes',
             required: true,
             extra: { multiline: true }
-
         }, {
             type: 'autocomplete',
             label: 'Ingredients',
             name: 'ingredients',
-            values: {
-                'foo': 'Foo',
-                'bar': 'Bar'
-            },
-            value: {'foo': 'Foo'},
+            values: ingredientsToValues(this.state.ingredients),
             required: true,
-            extra: { multiple: true }
+            extra: { 
+                multiple: true
+            }
         }];
     }
 
