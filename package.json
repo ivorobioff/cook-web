@@ -1,0 +1,60 @@
+{
+  "name": "opi-web",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/core": "^4.9.7",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.47",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "@types/axios": "^0.14.0",
+    "@types/email-validator": "^1.0.6",
+    "@types/history": "^4.7.5",
+    "@types/jest": "^24.9.1",
+    "@types/node": "^12.12.32",
+    "@types/object-path": "^0.11.0",
+    "@types/query-string": "^6.3.0",
+    "@types/react": "^16.9.26",
+    "@types/react-dom": "^16.9.5",
+    "@types/react-router-dom": "^5.1.4",
+    "axios": "^0.19.2",
+    "clsx": "^1.1.0",
+    "email-validator": "^2.0.4",
+    "moment": "^2.24.0",
+    "object-path": "^0.11.4",
+    "query-string": "^6.12.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-icons": "^3.9.0",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.4.1",
+    "rxjs": "^6.5.5",
+    "serve": "^11.3.0",
+    "typeface-roboto": "0.0.75",
+    "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "serve": "serve -s build -l 4200"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
