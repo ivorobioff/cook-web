@@ -15,6 +15,8 @@ export type DataFormConverter= (value: any) => any;
 export type DataFormTouchHandler = () => void;
 export type DataFormErrorHandler = (valid: boolean) => void;
 export type DataFormValidateHandler = (result: DataFormResult) => DataFormErrors;
+export type DataFormRendererRegistry = {[name: string]: () => ReactElement};
+export type DataFormLayoutProvider = (renderers: DataFormRendererRegistry) => ReactElement;
 
 export interface DataFormControl {
     type: string;
@@ -41,6 +43,7 @@ export interface DataFormProps {
     onValidate?: DataFormValidateHandler,
     autoComplete?: 'on'|'off';
     fresh?: boolean;
+    layout?: DataFormLayoutProvider;
 }
 
 type DataFormInput = { value: any, error?: string | null | undefined};
@@ -470,17 +473,33 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             autoComplete,
             children
         } = this.props;
+
+        let layout = this.props.layout;
+
+        if (!layout) {
+            layout = renderers => {
+                return (<Fragment>
+                    {controls.map((control, i) => {
+                        return (<Fragment key={i}>
+                            { renderers[control.name]() }
+                            { i < controls.length - 1 ? ( <Box m={2} />) : '' }
+                        </Fragment>);
+                    })}
+                </Fragment>);
+            }
+        }
+
+        const renderers: {[name: string]: () => ReactElement} = {};
+
+        controls.forEach(control => {
+            renderers[control.name] = () => {
+                let renderer = readField<DataFormControlRenderer>(this.renderers, control.type);
+                return renderer(control, this.createRenderContext(control));
+            }
+        });
         
         return (<form noValidate autoComplete={autoComplete} className={className}>
-            {controls.map((control, i) => {
-
-                let renderer = readField<DataFormControlRenderer>(this.renderers, control.type);
-
-                return (<Fragment key={i}>
-                    {renderer(control, this.createRenderContext(control))}
-                    { i < controls.length - 1 ? ( <Box m={2} />) : '' }
-                </Fragment>);
-            })}
+            { layout(renderers) }
             {children}
         </form>);
     }
