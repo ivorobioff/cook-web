@@ -97,7 +97,7 @@ class DishView extends Component<DishProps, DishState> {
     }
 
     componentDidMount() {
-        this.ingredientService.getAll(0, 1000).subscribe(ingredients => {
+        this.ingredientService.getAllLightweight().subscribe(ingredients => {
             this.setState({
                 ingredients
             })

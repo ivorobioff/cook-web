@@ -13,6 +13,10 @@ export default class IngredientService {
     getAll(offset: number, limit: number): Observable<Ingredient[]> {
         return this.http.get('/ingredients', { offset, limit });
     }
+
+    getAllLightweight(): Observable<Ingredient[]> {
+        return this.http.get('/lightweight-ingredients');
+    }
     
     create(ingredient: IngredientToPersist): Observable<Ingredient> {
         return this.http.post('/ingredients', ingredient);
