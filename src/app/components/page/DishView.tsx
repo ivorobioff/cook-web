@@ -289,7 +289,7 @@ class DishView extends Component<DishProps, DishState> {
                     columns={this.columns} />
                     <DataActionArea onCreate={this.openCreator.bind(this)} />
             </DataPaper>
-            {this.state.create && (<PopupForm
+            {this.state.create && (<PopupForm size="sm"
                 layout={this.definePersisterLayout.bind(this)}
                 controls={this.state.create!.controls}
                 onClose={this.closeCreator.bind(this)}

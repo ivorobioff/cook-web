@@ -29,6 +29,7 @@ export interface PopupProps {
     submitButtonDisabled?: boolean;
     errorHandler?: boolean;
     error?: string;
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 }
 
 interface PopupState {
@@ -53,14 +54,15 @@ class Popup extends Component<PopupProps, PopupState> {
             classes,
             submitButtonTitle = 'Submit',
             cancelButtonTitle,
-            submitButtonDisabled = false
+            submitButtonDisabled = false,
+            size = 'xs'
         } = this.props;
 
         const {
             error
         } = this.state;
 
-        return (<Dialog open={open} onEnter={this.beforeOpen.bind(this)} onClose={this.cancel.bind(this)} fullWidth maxWidth="xs">
+        return (<Dialog open={open} onEnter={this.beforeOpen.bind(this)} onClose={this.cancel.bind(this)} fullWidth maxWidth={size}>
         <DialogTitle>{title}
             <IconButton aria-label="close" onClick={this.cancel.bind(this)} className={classes.closeButton}>
                 <CloseIcon />

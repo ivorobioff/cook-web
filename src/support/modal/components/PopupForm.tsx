@@ -18,6 +18,7 @@ export interface PopupFormProps {
     fresh?: boolean;
     onTouch?: DataFormTouchHandler;
     layout?: DataFormLayoutProvider;
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 }
 
 interface PopupFormState {
@@ -48,7 +49,8 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             onClose,
             controls,
             fresh,
-            layout
+            layout,
+            size
         } = this.props;
 
         const {
@@ -59,6 +61,7 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
         } = this.state;
 
         return (<Popup title={title}
+                       size={size}
                        errorHandler={false}
                        error={globalError}
                        onOpen={this.open.bind(this)}
