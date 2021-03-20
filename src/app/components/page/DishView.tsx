@@ -15,6 +15,7 @@ import IngredientService from "../../services/IngredientService";
 import { toNumber } from "../../../support/mapping/converters";
 import { checkPositiveInt } from "../../../support/validation/validators";
 import { GrFormClose, GrFormAdd } from 'react-icons/gr'
+import { v4 as uuid } from 'uuid';
 
 interface DishProps {
     container: Container;
@@ -131,7 +132,10 @@ class DishView extends Component<DishProps, DishState> {
         this.setState({
             create: cloneWith(this.state.create, {
                 open: true,
-                controls: this.defineCreatorControls()
+                controls: this.defineIngredientLineControls(this.defineCreatorControls(),  {
+                    action: 'fresh',
+                    lineId: uuid()
+                })
             })
         });
     }
@@ -156,8 +160,6 @@ class DishView extends Component<DishProps, DishState> {
 
     private defineCreatorControls(): DataFormControl[] {
 
-        const ingredientValues = ingredientsToValues(this.state.ingredients);
-
         return [{
             type: 'text',
             label: 'Name',
@@ -169,65 +171,110 @@ class DishView extends Component<DishProps, DishState> {
             name: 'notes',
             required: true,
             extra: { multiline: true }
-        }, {
-            type: 'autocomplete',
-            label: 'Ingredient',
-            name: 'ingredient_0',
-            values: ingredientValues,
-            required: true
-        }, {
-            type: 'text',
-            label: 'Quantity',
-            name: 'quantity_0',
-            validate: checkPositiveInt,
-            convertOut: toNumber,
-            required: true
         }];
     }
 
-    private defineCreatorLayout(renderers: DataFormRendererRegistry): ReactElement {
-        const totalIngredientLines = this.state.create!.controls
+    private defineIngredientLineControls(controls: DataFormControl[], options: {
+        action: 'fresh' | 'add' | 'remove',
+        lineId: string
+    }): DataFormControl[] {
+        const ingredientValues = ingredientsToValues(this.state.ingredients);
+        const lineId = options.lineId;
+
+        const ingredientName = 'ingredient_' + lineId;
+        const quantityName = 'quantity_' + lineId; 
+
+        const oldIngredientLineControls = options.action === 'fresh' ? [] : this.state.create!.controls
+            .filter(control => control.name.startsWith('ingredient_') || control.name.startsWith('quantity_'));
+
+        oldIngredientLineControls.forEach(control => {
+            if (options.action !== 'remove' || (control.name !== ingredientName && control.name !== quantityName)) {
+                controls.push(control);   
+            }
+        });
+
+        if (options.action !== 'remove') {
+            controls.push({
+                type: 'autocomplete',
+                label: 'Ingredient',
+                name: ingredientName,
+                values: ingredientValues,
+                required: true
+            });
+    
+            controls.push({
+                type: 'text',
+                label: 'Quantity',
+                name: quantityName,
+                validate: checkPositiveInt,
+                convertOut: toNumber,
+                required: true
+            });
+        }
+
+        return controls;
+    }
+
+    private definePersisterLayout(renderers: DataFormRendererRegistry): ReactElement {
+        const ingredientLineIds = this.state.create!.controls
             .filter(control => control.name.startsWith('ingredient_'))
-            .length;
-        
+            .map(control => control.name.split('_')[1]);
+
         return (<Fragment>
             { renderers['name']() }
             <Box m={2} />
             { renderers['notes']() }
             <Box m={2} />
-            { (() => {
+            { ingredientLineIds.map((lineId, i) => {
+                return (<Grid key={i} container spacing={1}>
+                    <Grid item md={7}>
+                        { renderers['ingredient_' + lineId]() }
+                    </Grid>
+                    <Grid item md={4}>
+                        { renderers['quantity_' + lineId]() }
 
-                const lines: ReactElement[] = [];
-
-                for (let i = 0; i < totalIngredientLines; i ++) {
-                    lines.push(<Grid key={i} container spacing={1}>
-                        <Grid item md={7}>
-                            { renderers['ingredient_' + i]() }
-                        </Grid>
-                        <Grid item md={4}>
-                            { renderers['quantity_' + i]() }
-                        </Grid>
-                        <Grid item md={1}>
-                            <Box display="block" mt={1}>
-                                <IconButton className={this.props.classes.lineButton } >
-                                    <GrFormClose className={this.props.classes.lineButtonIcon } />
-                                </IconButton>
-                            </Box>
-                            
-                            { i == (totalIngredientLines - 1) && (<Box display="block">
-                                <IconButton className={this.props.classes.lineButton } >
-                                    <GrFormAdd className={this.props.classes.lineButtonIcon } color="#757575" />
-                                </IconButton>
-                            </Box>) }
-                            
-                        </Grid>
-                    </Grid>);
-                }
-
-                return (<Fragment>{ lines }</Fragment>);
-            })()}
-
+                    </Grid>
+                    <Grid item md={1}>
+                        { ingredientLineIds.length > 1 && (<Box display="block" mt={1}>
+                            <IconButton onClick={this.removeIngredientLineControls.bind(this, lineId)} className={this.props.classes.lineButton } >
+                                <GrFormClose className={this.props.classes.lineButtonIcon } />
+                            </IconButton>
+                        </Box>)}
+                        
+                        { i === 0 && (<Box mb={4} />)}
+                        
+                        { i === (ingredientLineIds.length - 1) && (<Box display="block">
+                            <IconButton onClick={this.addIngredientLineControls.bind(this)} className={this.props.classes.lineButton } >
+                                <GrFormAdd className={this.props.classes.lineButtonIcon } color="#757575" />
+                            </IconButton>
+                        </Box>) }
+                        
+                    </Grid>
+                </Grid>)
+            }) }
         </Fragment>);
+    }
+
+    removeIngredientLineControls(lineId: string) {        
+        this.setState({
+            create: cloneWith(this.state.create, {
+                controls: this.defineIngredientLineControls(this.defineCreatorControls(), {
+                    action: 'remove',
+                    lineId
+                })
+            })
+        });
+    }
+
+    addIngredientLineControls() {
+        this.setState({
+            create: cloneWith(this.state.create, {
+                controls: this.defineIngredientLineControls(this.defineCreatorControls(),{
+                    action: 'add',
+                    lineId: uuid()
+                })
+            })
+        });
     }
 
     render() {
@@ -243,7 +290,7 @@ class DishView extends Component<DishProps, DishState> {
                     <DataActionArea onCreate={this.openCreator.bind(this)} />
             </DataPaper>
             {this.state.create && (<PopupForm
-                layout={this.defineCreatorLayout.bind(this)}
+                layout={this.definePersisterLayout.bind(this)}
                 controls={this.state.create!.controls}
                 onClose={this.closeCreator.bind(this)}
                 onSubmit={this.submitCreator.bind(this)}
