@@ -97,15 +97,3 @@ export function fromAllCapsToHumanCase(text: string): string {
 
     return text.toLowerCase().split('_').map(w => ucFirst(w)).join(' ');
 }
-
-export function optionsToHash(options: [{ value: string|number, title: string}]): {[name: string]: string } {
-    const result:  {[name: string]: string } = {};
-
-    options.forEach(option => result[option.value] = option.title);
-
-    return result;
-}
-
-export function hashToOptions(hash: {[name: string]: string }): {value: string, title: string}[] {
-    return Object.keys(hash).map(key => ({ value: key, title: hash[key] }));
-}

@@ -4,7 +4,7 @@ import DataActionArea from "../../../support/data/components/DataActionArea";
 import DataPaper from "../../../support/data/components/DataPaper";
 import DataView, { DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
 import Container from "../../../support/ioc/Container";
-import Dish, { DishToPersist } from "../../models/Dish";
+import Dish, { DishToPersist, RequiredIngredient } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";
 import DishService from "../../services/DishService";
 import { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
@@ -12,6 +12,8 @@ import { cloneArrayWith, cloneWith } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
+import { checkZeroOrPositiveInt } from "../../../support/validation/validators";
+import { toNumber } from "../../../support/mapping/converters";
 
 
 interface DishProps {
@@ -46,7 +48,7 @@ const styles = (theme: Theme) => createStyles({
 function ingredientsToValues(ingredients: Ingredient[]): {[name: string]: string} {
     const result: {[name: string]: string} = {};
     
-    ingredients.forEach(ingredient => result[ingredient.id] = `${ingredient.name} - ${ingredient.quantity} ${ingredient.unit}`);
+    ingredients.forEach(ingredient => result[ingredient.id] = ingredient.name);
 
     return result;
 }
@@ -75,9 +77,9 @@ class DishView extends Component<DishProps, DishState> {
             name: 'notes',
         },
         {
-            name: 'ingredients',
+            name: 'requiredIngredients',
             component: dish => (<Fragment>
-                {dish.ingredients!.map(this.renderIngredient.bind(this))}
+                {dish.requiredIngredients!.map(this.renderIngredient.bind(this))}
             </Fragment>)
         }
     ];
@@ -102,11 +104,20 @@ class DishView extends Component<DishProps, DishState> {
         });
     }
     
-    private renderIngredient(ingredient: Ingredient, i: number): ReactElement {
+    private renderIngredient(requiredIngredient: RequiredIngredient, i: number): ReactElement {
 
-        const zeroClass = ingredient.quantity === 0 ? this.props.classes.noIngredient : undefined;
+        const requiredQuantity = requiredIngredient.quantity;
+        const availableQuantity = requiredIngredient.ingredient!.quantity;
+        const name = requiredIngredient.ingredient!.name;
+        const unit = requiredIngredient.ingredient!.unit;
 
-        return <div key={`i-${i}`} className={zeroClass}>{ingredient.name} - {ingredient.quantity} {ingredient.unit}</div>
+        const notEnoughClass = requiredQuantity > availableQuantity 
+            ? this.props.classes.noIngredient 
+            : undefined;
+
+        return <div key={`i-${i}`} className={notEnoughClass}>
+            {name} - {requiredQuantity} {unit}
+        </div>
     }
 
     openCreator() {
@@ -154,10 +165,16 @@ class DishView extends Component<DishProps, DishState> {
             label: 'Ingredients',
             name: 'ingredients',
             values: ingredientsToValues(this.state.ingredients),
+            required: true
+        }, {
+            type: 'text',
+            label: 'Quantity',
+            name: 'quantity',
+            validate: checkZeroOrPositiveInt,
+            convertOut: toNumber,
             required: true,
-            extra: { 
-                multiple: true
-            }
+            value: 0
+
         }];
     }
 

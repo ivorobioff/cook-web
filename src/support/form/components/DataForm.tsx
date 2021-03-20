@@ -1,6 +1,6 @@
 import React, {Component, ReactElement, Fragment} from 'react';
 import {Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, FormLabel, RadioGroup, Radio} from "@material-ui/core";
-import {clone, cloneExcept, cloneWith, hasField, hashToOptions, objectEmpty, optionsToHash, readField, tryField} from "../../random/utils";
+import {clone, cloneExcept, cloneWith, hasField, objectEmpty, readField, tryField} from "../../random/utils";
 import {isBlank} from "../../validation/utils";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { Autocomplete } from '@material-ui/lab';
@@ -128,6 +128,10 @@ function resolveError(control: DataFormControl, context: DataFormRenderContext):
     return tryField(context, `state.inputs.${control.name}.error`, undefined);
 }
 
+function hashToOptions(hash: {[name: string]: string }): {value: string, title: string}[] {
+    return Object.keys(hash).map(key => ({ value: key, title: hash[key] }));
+}
+
 function renderText(control: DataFormControl, context: DataFormRenderContext): ReactElement {
 
     let error = resolveError(control, context);
@@ -178,25 +182,35 @@ function renderSelect(control: DataFormControl, context: DataFormRenderContext):
 }
 
 function renderAutocomplete(control: DataFormControl, context: DataFormRenderContext): ReactElement {
+    const isMultiple = !!control.extra?.multiple;
 
-    const availableValues = hashToOptions(control.values!);
+    const originalValues = control.values!;
+    const availableValues = hashToOptions(originalValues);
     
     const error = resolveError(control, context);
 
     let providedValues = resolveValue(control, context);
 
-    if (typeof providedValues === 'undefined' || providedValues === null) {
-        providedValues = {};
+    if (isMultiple) {
+        providedValues = (providedValues || []).map((value: string) => ({ value, title: originalValues[value]}));
+    } else {
+        providedValues = providedValues ? {  value: providedValues, title:  originalValues[providedValues]} : null;
     }
-
-    providedValues = hashToOptions(providedValues);
 
     return (<FormControl fullWidth error={!!error}><Autocomplete 
         disabled={control.disabled}
         multiple={control.extra?.multiple}
         options={availableValues}
         getOptionLabel={(option) => option.title}
-        onChange={(e: any, v: any) => context.onChange(optionsToHash(v))}
+        onChange={(e: any, selectedOptions: any) => {
+            if (isMultiple) {
+                const values = (selectedOptions || []).map((o: any) => o.value);
+
+                context.onChange(values);
+            } else {
+                context.onChange((selectedOptions || {}).value);
+            }
+        }}
         value={providedValues}
         getOptionSelected={(option, againstOption) => option.value === againstOption.value}
         filterSelectedOptions

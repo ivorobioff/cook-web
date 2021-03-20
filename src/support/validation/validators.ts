@@ -1,4 +1,4 @@
-import {isMoney, isPositiveFloat, isEmail, isFloat, isZeroOrPositiveInt} from "./utils";
+import {isMoney, isPositiveFloat, isEmail, isFloat, isZeroOrPositiveInt, isPositiveInt, isZeroOrPositiveFloat} from "./utils";
 
 export function checkAll(...checkers: ((value: any) => string | null)[]): (value: any) => string | null {
     return (v) => {
@@ -14,13 +14,20 @@ export function checkAll(...checkers: ((value: any) => string | null)[]): (value
     }
 }
 
+export function checkPositiveInt(value: any): string | null {
+    return isPositiveInt(value) ? null : 'Must be a positive whole number'
+}
 
 export function checkZeroOrPositiveInt(value: any): string | null {
-    return isZeroOrPositiveInt(value) ? null : 'Invalid number format'
+    return isZeroOrPositiveInt(value) ? null : 'Must be zero or a positive whole number'
+}
+
+export function checkZeroOrPositiveFloat(value: any): string | null {
+    return isZeroOrPositiveFloat(value) ? null : 'Must be zero or a positive whole/fractional number'
 }
 
 export function checkPositiveFloat(value: any): string | null {
-    return isPositiveFloat(value) ? null : 'Invalid number format'
+    return isPositiveFloat(value) ? null : 'Must be a positive whole/fractional number'
 }
 
 export function checkMoney(value: any): string | null {
