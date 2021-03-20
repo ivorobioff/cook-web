@@ -175,8 +175,9 @@ class DishView extends Component<DishProps, DishState> {
     }
 
     private defineIngredientLineControls(controls: DataFormControl[], options: {
-        action: 'fresh' | 'add' | 'remove',
-        lineId: string
+        action: 'fresh' | 'add' | 'remove' | 'update',
+        lineId: string,
+        unit?: string
     }): DataFormControl[] {
         const ingredientValues = ingredientsToValues(this.state.ingredients);
         const lineId = options.lineId;
@@ -191,14 +192,35 @@ class DishView extends Component<DishProps, DishState> {
             if (options.action !== 'remove' || (control.name !== ingredientName && control.name !== quantityName)) {
                 controls.push(control);   
             }
+
+            if (options.action === 'update') {
+                if (control.name === quantityName) {
+                    if (options.unit) {
+                        control.label = `Quantity (${options.unit})`;
+                    } else {
+                        control.label = 'Quantity';
+                    }
+                }
+            }
         });
 
-        if (options.action !== 'remove') {
+        if (['fresh', 'add'].includes(options.action)) {
             controls.push({
                 type: 'autocomplete',
                 label: 'Ingredient',
                 name: ingredientName,
                 values: ingredientValues,
+                onInput: v => {
+                    this.setState({
+                        create: cloneWith(this.state.create, {
+                            controls: this.defineIngredientLineControls(this.defineCreatorControls(), {
+                                action: 'update',
+                                lineId,
+                                unit: v ? this.state.ingredients.find(ingredient => ingredient.id === v)!.unit : undefined
+                            })
+                        })
+                    });
+                },
                 required: true
             });
     
@@ -234,7 +256,7 @@ class DishView extends Component<DishProps, DishState> {
                         { renderers['quantity_' + lineId]() }
 
                     </Grid>
-                    <Grid item md={1}>
+                    <Grid item md={1} style={{textAlign: "center"}}>
                         { ingredientLineIds.length > 1 && (<Box display="block" mt={1}>
                             <IconButton onClick={this.removeIngredientLineControls.bind(this, lineId)} className={this.props.classes.lineButton } >
                                 <GrFormClose className={this.props.classes.lineButtonIcon } />
