@@ -12,8 +12,8 @@ import { cloneArrayWith, cloneWith } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
-import { checkZeroOrPositiveInt } from "../../../support/validation/validators";
 import { toNumber } from "../../../support/mapping/converters";
+import { checkPositiveInt } from "../../../support/validation/validators";
 
 
 interface DishProps {
@@ -170,10 +170,9 @@ class DishView extends Component<DishProps, DishState> {
             type: 'text',
             label: 'Quantity',
             name: 'quantity',
-            validate: checkZeroOrPositiveInt,
+            validate: checkPositiveInt,
             convertOut: toNumber,
-            required: true,
-            value: 0
+            required: true
 
         }];
     }
