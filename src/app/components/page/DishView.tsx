@@ -149,7 +149,32 @@ class DishView extends Component<DishProps, DishState> {
     }
 
     submitCreator(data: DataFormResult) {
-        return this.dishService.create(data as DishToPersist).pipe(
+
+        const quantities: {[name: string]: string} = {};
+        const ingredientIds: {[name: string]: string} = {};
+
+        Object.keys(data).forEach(key => {
+            if (key.startsWith('ingredient_')) {
+                ingredientIds[key.split('_')[1]] = data[key];
+            }
+
+            if (key.startsWith('quantity_')) {
+                quantities[key.split('_')[1]] = data[key];
+            }
+        });
+
+        const requiredIngredients: RequiredIngredient[] = Object.keys(ingredientIds).map(key => ({
+            ingredientId: ingredientIds[key],
+            quantity: parseInt(quantities[key])
+        }));
+
+        const payload: DishToPersist = {
+            name: data['name'],
+            notes: data['notes'],
+            requiredIngredients
+        };
+
+        return this.dishService.create(payload).pipe(
             tap(dish => {
                 this.setState({
                     data: cloneArrayWith(this.state.data, dish)
