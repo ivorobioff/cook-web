@@ -8,7 +8,7 @@ import Dish, { DishToPersist, RequiredIngredient } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";
 import DishService from "../../services/DishService";
 import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
-import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst } from "../../../support/random/utils";
+import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayExcept } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
@@ -17,6 +17,7 @@ import { checkPositiveInt } from "../../../support/validation/validators";
 import { GrFormClose, GrFormAdd } from 'react-icons/gr'
 import { v4 as uuid } from 'uuid';
 import { AiFillDelete, AiOutlineEdit } from "react-icons/ai";
+import Confirmation from "../../../support/modal/components/Confirmation";
 
 interface DishProps {
     container: Container;
@@ -400,6 +401,27 @@ class DishView extends Component<DishProps, DishState> {
         });
     }
 
+    closeRemoveConfirmation() {
+        this.setState({
+            remove: cloneWith(this.state.remove, {
+                open: false
+            })
+        });
+    }
+
+    handleRemoveConfirmation() {
+
+        let dish = this.state.remove!.dish!;
+
+        return this.dishService.remove(dish.id).pipe(
+            tap(() => {
+                this.setState({
+                    data: cloneArrayExcept(this.state.data, dish)
+                });
+            })
+        );
+    }
+
     render() {
         
         const { data} = this.state;
@@ -421,6 +443,15 @@ class DishView extends Component<DishProps, DishState> {
                 onSubmit={this.submitPersister.bind(this)}
                 open={this.state.persister!.open}
                 title={`Dish - ${ucFirst(this.state.persister!.intent)}`} />) } 
+
+            {this.state.remove && (<Confirmation
+                onClose={this.closeRemoveConfirmation.bind(this)}
+                onHandle={this.handleRemoveConfirmation.bind(this)}
+                confirmButtonTitle="Proceed"
+                open={this.state.remove!.open}
+                title="Dish - Delete">
+                {`You are about to delete "${this.state.remove!.dish.name}". Do you want to proceed?`}
+            </Confirmation>)}
         </Fragment>);
     }
 }

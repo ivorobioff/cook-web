@@ -21,4 +21,8 @@ export default class DishService {
     update(id: string, dish: DishToPersist): Observable<Dish> {
         return this.http.patch('/dishes/' + id, dish);
     }
+
+    remove(id: string): Observable<any> {
+        return this.http.delete('/dishes/' + id);
+    }
 }
