@@ -448,9 +448,16 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             let disabledControls = disabledControlNames(this.props.controls);
             let lostControls = lostControlNames(this.props.controls, this.state.inputs);
 
+            const inputs = cloneExcept(this.state.inputs, ...disabledControls, ...lostControls);
+
             this.setState({
-                inputs: cloneExcept(this.state.inputs, ...disabledControls, ...lostControls)
+                inputs
             });
+
+            // in case if inputs with errors are gone
+            if (this.props.onError) {
+                this.props.onError(hasError(inputs, this.props.controls));
+            }
         }
 
         // run scheduled tasks
