@@ -1,8 +1,8 @@
-import React, { Component, Fragment } from "react"
+import React, { Component, Fragment, ReactElement } from "react"
 import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
-import { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
+import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
 import Container from "../../../support/ioc/Container";
-import Schedule, { ScheduleToPersist } from "../../models/Schedule";
+import Schedule, { FinishedSchedule, ScheduleToPersist } from "../../models/Schedule";
 import ScheduleService from "../../services/ScheduleService";
 import moment from "moment";
 import DataPaper from "../../../support/data/components/DataPaper";
@@ -15,6 +15,11 @@ import DishService from "../../services/DishService";
 import { formatMoment } from "../../../support/mapping/converters";
 import Confirmation from "../../../support/modal/components/Confirmation";
 import { AiFillDelete, AiOutlineCheck } from "react-icons/ai";
+import { Box, createStyles, Theme, withStyles } from "@material-ui/core";
+import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/IngredientLinePlugin";
+import Ingredient from "../../models/Ingredient";
+import IngredientService from "../../services/IngredientService";
+
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
     const result: {[name: string]: string} = {};
@@ -26,6 +31,7 @@ function dishesToValues(dishes: Dish[]): {[name: string]: string} {
 
 interface ScheduleProps {
     container: Container;
+    classes: {[name: string]: string};
 }
 
 interface ScheduleState {
@@ -36,19 +42,37 @@ interface ScheduleState {
     },
     finish?: {
         open: boolean,
-        controls: DataFormControl[]
+        controls: DataFormControl[],
+        touched?: boolean,
+        schedule: Schedule
     }
     remove?: {
         open: true,
         schedule: Schedule
     },
-    dishes: Dish[]
+    dishes: Dish[],
+    ingredients: Ingredient[]
 }
 
-export default class ScheduleView extends Component<ScheduleProps, ScheduleState> {
+const styles = (theme: Theme) => createStyles(ingredientLineStyles);
+
+class ScheduleView extends Component<ScheduleProps, ScheduleState> {
 
     private scheduleService: ScheduleService;
     private dishService: DishService;
+    private ingredientService: IngredientService;
+
+    private ingredientLinePlugin = new IngredientLinePlugin(
+        () => ({
+            controls: this.state.finish?.controls || [],
+            ingredients: this.state.ingredients
+        }),
+        attributes => this.setState({
+            finish: cloneWith(this.state.finish, attributes)
+        }),
+        () => this.defineFinisherControls(),
+        this.props.classes
+    )
 
     columns: DataViewColumn[] = [
         {
@@ -65,7 +89,13 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
     actions: DataViewAction[] = [{
         icon: <AiOutlineCheck />,
         onClick: schedule => {
-           
+            this.setState({
+                finish: {
+                    open: true,
+                    schedule,
+                    controls: this.ingredientLinePlugin.preloadIngredientLineControls(schedule.dish)
+                }
+            });
         }
     }, {
         icon: <AiFillDelete />,
@@ -87,10 +117,12 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
         
         this.scheduleService = container.get(ScheduleService);
         this.dishService = container.get(DishService);
+        this.ingredientService = container.get(IngredientService);
 
         this.state = {
             data: [],
-            dishes: []
+            dishes: [],
+            ingredients: []
         }
     }
 
@@ -98,6 +130,12 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
         this.dishService.getAllLightweight().subscribe(dishes => {
             this.setState({
                 dishes
+            })
+        });
+
+        this.ingredientService.getAllLightweight().subscribe(ingredients => {
+            this.setState({
+                ingredients
             })
         });
     }
@@ -172,7 +210,6 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
 
         let schedule = this.state.remove!.schedule;
 
-
         return this.scheduleService.remove(schedule.id).pipe(
             tap(() => {
                 this.setState({
@@ -180,6 +217,51 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
                 });
             })
         );
+    }
+
+    private defineFinisherControls(): DataFormControl[] {
+        return [{
+            type: 'text',
+            label: 'Notes',
+            name: 'notes',
+            required: true,
+            extra: { multiline: true }
+        }];
+    }
+
+    private defineFinisherLayout(renderers: DataFormRendererRegistry): ReactElement {
+        return (<Fragment>
+            { renderers['notes']() }
+            <Box m={2} />
+            { this.ingredientLinePlugin.renderIngredientLines(renderers) }
+        </Fragment>);
+    }
+
+    closeFinisher() {
+        this.setState({
+            finish: cloneWith(this.state.finish, {
+                open: false
+            })
+        });
+    }
+
+    submitFinisher(data: DataFormResult) {
+
+        const finished: FinishedSchedule = {
+            notes: data['notes'],
+            wastes: this.ingredientLinePlugin.extractWastes(data)
+        }
+
+        const schedule = this.state.finish!.schedule;
+
+        return this.scheduleService.finish(schedule.id, finished)
+            .pipe(
+                tap(() => {
+                    this.setState({
+                        data: cloneArrayExcept(this.state.data, schedule)
+                    });
+                })
+            )
     }
     
     render() {
@@ -209,6 +291,16 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
                 title="Schedule - Delete">
                 {`You are about to delete "${this.state.remove!.schedule.dish.name}". Do you want to proceed?`}
             </Confirmation>)}
+            {this.state.finish && (<PopupForm size="sm"
+                touched={this.state.finish!.touched }
+                layout={this.defineFinisherLayout.bind(this)}
+                controls={this.state.finish!.controls}
+                onClose={this.closeFinisher.bind(this)}
+                onSubmit={this.submitFinisher.bind(this)}
+                open={this.state.finish!.open}
+                title={`Schedule - Finish`} />) } 
         </Fragment>);
     }
 }
+
+export default withStyles(styles)(ScheduleView);

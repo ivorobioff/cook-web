@@ -1,7 +1,7 @@
 import { Observable } from "rxjs";
 import HttpCommunicator from "../../support/http/HttpCommunicator";
 import Container from "../../support/ioc/Container";
-import Schedule, { ScheduleToPersist } from "../models/Schedule";
+import Schedule, { FinishedSchedule, ScheduleToPersist } from "../models/Schedule";
 
 export default class ScheduleService {
     private http: HttpCommunicator;
@@ -20,5 +20,9 @@ export default class ScheduleService {
 
     remove(id: string): Observable<any> {
         return this.http.delete('/schedules/' + id);
+    }
+
+    finish(id: string, finished: FinishedSchedule): Observable<any> {
+        return this.http.post('/schedules/' + id + '/finish', finished);
     }
 }

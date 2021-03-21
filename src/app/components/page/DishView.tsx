@@ -170,7 +170,7 @@ class DishView extends Component<DishProps, DishState> {
         const payload: DishToPersist = {
             name: data['name'],
             notes: data['notes'],
-            requiredIngredients: this.ingredientLinePlugin.extractRequiredIngredients(data)
+            requiredIngredients: this.ingredientLinePlugin.extractWastes(data)
         };
 
         const intent = this.state.persister!.intent;

@@ -8,6 +8,10 @@ import Ingredient from "../../models/Ingredient";
 import { checkPositiveInt } from "../../../support/validation/validators";
 import { toNumber } from "../../../support/mapping/converters";
 
+export interface Waste {
+    ingredientId: string;
+    quantity: number;
+}
 
 function makeQuantityLabel(unit?: string): string {
     return unit ? `Quantity (${unit})` : 'Quantity';
@@ -118,7 +122,7 @@ export default class IngredientLinePlugin {
         })
     }
 
-    extractRequiredIngredients(data: DataFormResult): RequiredIngredient[] {
+    extractWastes(data: DataFormResult): Waste[] {
         const quantities: {[name: string]: string} = {};
         const ingredientIds: {[name: string]: string} = {};
 
