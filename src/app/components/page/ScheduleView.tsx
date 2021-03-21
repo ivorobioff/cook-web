@@ -19,6 +19,7 @@ import { Box, createStyles, Theme, withStyles } from "@material-ui/core";
 import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/IngredientLinePlugin";
 import Ingredient from "../../models/Ingredient";
 import IngredientService from "../../services/IngredientService";
+import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
@@ -76,9 +77,14 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
 
     columns: DataViewColumn[] = [
         {
-            name: 'dish',
-            title: 'Scheduled Dish',
-            pipe: dish => dish.name
+            name: 'dishName',
+            path: 'dish.name',
+            title: 'Scheduled Dish'
+        },
+        {
+            name: 'requiredIngredients',
+            title: 'Required Ingredients',
+            component: schedule => (<RequiredIngredientOverview dish={schedule.dish} />)
         },
         {
             name: 'scheduledOn',

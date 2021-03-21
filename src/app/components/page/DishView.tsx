@@ -4,7 +4,7 @@ import DataActionArea from "../../../support/data/components/DataActionArea";
 import DataPaper from "../../../support/data/components/DataPaper";
 import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
 import Container from "../../../support/ioc/Container";
-import Dish, { DishToPersist, RequiredIngredient } from "../../models/Dish";
+import Dish, { DishToPersist } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";
 import DishService from "../../services/DishService";
 import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
@@ -19,6 +19,7 @@ import HistoryService from "../../services/HistoryService";
 import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
 import { Waste } from "../../models/History";
+import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 
 interface DishProps {
     container: Container;
@@ -90,9 +91,7 @@ class DishView extends Component<DishProps, DishState> {
         },
         {
             name: 'requiredIngredients',
-            component: dish => (<Fragment>
-                {dish.requiredIngredients!.map(this.renderIngredient.bind(this))}
-            </Fragment>)
+            component: dish => (<RequiredIngredientOverview dish={dish} />)
         }
     ];
 
@@ -191,22 +190,6 @@ class DishView extends Component<DishProps, DishState> {
         });
     }
     
-    private renderIngredient(requiredIngredient: RequiredIngredient, i: number): ReactElement {
-
-        const requiredQuantity = requiredIngredient.quantity;
-        const availableQuantity = requiredIngredient.ingredient!.quantity;
-        const name = requiredIngredient.ingredient!.name;
-        const unit = requiredIngredient.ingredient!.unit;
-
-        const notEnoughClass = requiredQuantity > availableQuantity 
-            ? this.props.classes.noIngredient 
-            : undefined;
-
-        return <div key={`i-${i}`} className={notEnoughClass}>
-            {name} - {requiredQuantity} {unit}
-        </div>
-    }
-
     openPersister(intent: string) {
         this.setState({
             persister: cloneWith(this.state.persister, {

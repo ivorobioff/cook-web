@@ -55,6 +55,7 @@ export type DataViewOnClickCellHandler = (row: any, context: DataViewCellClickCo
 export interface DataViewColumn {
     title?: string;
     name: string;
+    path?: string;
     format?: DataViewCellFormat;
     pipe?: DataViewPipeHandler;
     component?: (row: any) => ReactElement | null | undefined;
@@ -100,7 +101,9 @@ function canClickCell(row: any, column: DataViewColumn) {
 
 function resolveValue(row: any, column: DataViewColumn): string {
 
-    let value = valueByPath(column.name, row);
+    let path = column.path || column.name;
+
+    let value = valueByPath(path, row);
     let format = column.format || DataViewCellFormat.DEFAULT;
 
     if (format === DataViewCellFormat.MONEY) {
