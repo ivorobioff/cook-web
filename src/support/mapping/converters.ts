@@ -21,10 +21,6 @@ export function toNullIfBlank(value: any): any|null {
     return isBlank(value) ? null : value;
 }
 
-export function toBlankIfNull(value: any): any {
-    return value === null ? '' : value;
-}
-
 export function toMoment(v: string | null | undefined): Moment | null | undefined {
     if (typeof v !== 'string') {
         return v;

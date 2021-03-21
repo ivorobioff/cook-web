@@ -14,7 +14,7 @@ import Dish from "../../models/Dish";
 import DishService from "../../services/DishService";
 import { formatMoment } from "../../../support/mapping/converters";
 import Confirmation from "../../../support/modal/components/Confirmation";
-import { AiFillDelete } from "react-icons/ai";
+import { AiFillDelete, AiOutlineCheck } from "react-icons/ai";
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
     const result: {[name: string]: string} = {};
@@ -34,6 +34,10 @@ interface ScheduleState {
         open: boolean;
         controls: DataFormControl[];
     },
+    finish?: {
+        open: boolean,
+        controls: DataFormControl[]
+    }
     remove?: {
         open: true,
         schedule: Schedule
@@ -59,6 +63,11 @@ export default class ScheduleView extends Component<ScheduleProps, ScheduleState
     ];
 
     actions: DataViewAction[] = [{
+        icon: <AiOutlineCheck />,
+        onClick: schedule => {
+           
+        }
+    }, {
         icon: <AiFillDelete />,
         onClick: schedule => {
             this.setState({

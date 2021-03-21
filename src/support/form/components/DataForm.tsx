@@ -32,7 +32,9 @@ export interface DataFormControl {
     validate?: DataFormValidator;
     required?: boolean | string;
     convertOut?: DataFormConverter;
+    uselessOut?: any;
     convertIn?: DataFormConverter;
+    uselessIn?: any;
     extra?: any;
 }
 
@@ -343,7 +345,7 @@ function uselessForConvert(value: any): boolean {
 function convertIn(control: DataFormControl, value: any): any {
 
     if (uselessForConvert(value)) {
-        return undefined;
+        return control.uselessIn;
     }
 
     if (control.convertIn) {
@@ -360,7 +362,7 @@ function convertOut(control: DataFormControl, {value, error}: DataFormInput): an
     }
 
     if (uselessForConvert(value)) {
-        return undefined;
+        return control.uselessOut;
     }
 
     if (control.convertOut) {
