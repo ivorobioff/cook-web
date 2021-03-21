@@ -31,7 +31,6 @@ interface DishState {
         dish?: Dish,
         open: boolean;
         controls: DataFormControl[];
-        touched?: boolean
     },
     remove?: {
         open: true,
@@ -382,8 +381,7 @@ class DishView extends Component<DishProps, DishState> {
                 controls: this.defineIngredientLineControls(this.definePersisterControls(), {
                     action: 'remove',
                     lineId
-                }),
-                touched: true
+                })
             })
         });
     }
@@ -394,8 +392,7 @@ class DishView extends Component<DishProps, DishState> {
                 controls: this.defineIngredientLineControls(this.definePersisterControls(),{
                     action: 'add',
                     lineId: uuid()
-                }),
-                touched: true
+                })
             })
         });
     }
@@ -414,7 +411,6 @@ class DishView extends Component<DishProps, DishState> {
                     <DataActionArea onCreate={() => this.openPersister('create')} />
             </DataPaper>
             {this.state.persister && (<PopupForm size="sm"
-                touched={this.state.persister!.touched}
                 layout={this.definePersisterLayout.bind(this)}
                 controls={this.state.persister!.controls}
                 onClose={this.closePersister.bind(this)}

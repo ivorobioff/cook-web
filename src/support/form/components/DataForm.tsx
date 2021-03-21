@@ -458,6 +458,8 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             if (this.props.onError) {
                 this.props.onError(hasError(inputs, this.props.controls));
             }
+
+            this.touch();
         }
 
         // run scheduled tasks
@@ -511,6 +513,13 @@ class DataForm extends Component<DataFormProps, DataFormState> {
         </form>);
     }
 
+
+    private touch() {
+        if (this.props.onTouch) {
+            this.props.onTouch();
+        }
+    }
+
     private createRenderContext(control: DataFormControl): DataFormRenderContext {
         return {
             onChange: value => {
@@ -528,9 +537,7 @@ class DataForm extends Component<DataFormProps, DataFormState> {
                     })
                 });
 
-                if (this.props.onTouch) {
-                    this.props.onTouch();
-                }
+                this.touch();
 
                 this.scheduledTasks.push(() => {
                     if (this.props.onError) {
