@@ -12,9 +12,13 @@ import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayE
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
-import { AiFillDelete, AiOutlineEdit } from "react-icons/ai";
+import { AiFillDelete, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
 import Confirmation from "../../../support/modal/components/Confirmation";
 import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/IngredientLinePlugin";
+import HistoryService from "../../services/HistoryService";
+import Popup from "../../../support/modal/components/Popup";
+import moment from 'moment';
+import { Waste } from "../../models/History";
 
 interface DishProps {
     container: Container;
@@ -30,6 +34,11 @@ interface DishState {
         open: boolean;
         controls: DataFormControl[];
         touched?: boolean;
+    },
+    history?: {
+        dish: Dish,
+        open: boolean,
+        data: History[]
     },
     remove?: {
         open: true,
@@ -47,6 +56,7 @@ class DishView extends Component<DishProps, DishState> {
 
     private dishService: DishService;
     private ingredientService: IngredientService;
+    private historyService: HistoryService;
 
     private ingredientLinePlugin = new IngredientLinePlugin(
         () => ({
@@ -86,7 +96,56 @@ class DishView extends Component<DishProps, DishState> {
         }
     ];
 
+    historyColumns: DataViewColumn[] = [
+        {
+            name: 'notes'
+        },
+        {
+            name: 'wastes',
+            title: 'Ingredients Used',
+            component: history => (<Fragment>
+                {history.wastes.map((waste: Waste) => {
+                    return (<div>{ waste.ingredientName } - {waste.quantity} {waste.ingredientUnit}</div>)
+                })}
+            </Fragment>)
+        },
+        {
+            name: 'scheduledOn',
+            pipe: v => moment(v).format('DD/MM/YYYY')
+        },
+        {
+            name: 'finishedAt',
+            title: 'Finish Date',
+            pipe: v => moment(v).format('DD/MM/YYYY')
+        }
+    ];
+
+    private historyPaged: DataViewPaged = {
+        onChange: (offset, limit) => {
+            this.historyService.getAll(this.state.history!.dish.id, offset, limit).subscribe(history => {
+                this.setState({
+                    history: cloneWith(this.state.history, { data: history })  
+                });
+            }, error => {
+                this.setState({ data: [] });
+                console.error(error);
+            });
+        }
+    };
+
     actions: DataViewAction[] = [{
+        icon: <AiOutlineHistory />,
+        onClick: dish => {
+            this.setState({
+                history: {
+                    open: true,
+                    dish,
+                    data: []
+                }
+            });
+        },
+        disabled: dish => !dish.withHistory
+    },{
         icon: <AiOutlineEdit />,
         onClick: dish => {
             this.setState({
@@ -116,6 +175,7 @@ class DishView extends Component<DishProps, DishState> {
 
         this.dishService = props.container.get(DishService);
         this.ingredientService = props.container.get(IngredientService);
+        this.historyService = props.container.get(HistoryService);
 
         this.state = {
             data: [],
@@ -250,6 +310,14 @@ class DishView extends Component<DishProps, DishState> {
         );
     }
 
+    closeHistory() {
+        this.setState({
+            history: cloneWith(this.state.history, {
+                open: false
+            })
+        })
+    }
+
     render() {
         
         const { data } = this.state;
@@ -281,6 +349,20 @@ class DishView extends Component<DishProps, DishState> {
                 title="Dish - Delete">
                 {`You are about to delete "${this.state.remove!.dish.name}". Do you want to proceed?`}
             </Confirmation>)}
+
+            {this.state.history && (<Popup
+                size="md"
+                onClose={this.closeHistory.bind(this)}
+                open={this.state.history!.open}
+                submitButtonTitle="OK"
+                title={`${this.state.history.dish.name} - History`}>
+                     <DataPaper>
+                        <DataView
+                            data={this.state.history!.data}
+                            paged={this.historyPaged}
+                            columns={this.historyColumns} />
+                    </DataPaper>
+            </Popup>)}
         </Fragment>);
     }
 }

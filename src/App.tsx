@@ -19,6 +19,7 @@ import DishView from './app/components/page/DishView';
 import ScheduleView from './app/components/page/ScheduleView';
 import DishService from './app/services/DishService';
 import ScheduleService from './app/services/ScheduleService';
+import HistoryService from './app/services/HistoryService';
 
 const container = new Container();
 
@@ -37,6 +38,7 @@ container.registerFactory('env', () => {
 container.registerType(IngredientService);
 container.registerType(DishService);
 container.registerType(ScheduleService);
+container.registerType(HistoryService);
 container.registerType(Authenticator);
 
 container.registerFactory('history', () => createBrowserHistory());
