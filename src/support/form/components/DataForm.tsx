@@ -4,6 +4,8 @@ import {clone, cloneExcept, cloneWith, hasField, objectEmpty, readField, tryFiel
 import {isBlank} from "../../validation/utils";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { Autocomplete } from '@material-ui/lab';
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 
 export type DataFormResult = {[field: string]: any};
 export type DataFormErrors = {[field: string]: any};
@@ -17,6 +19,7 @@ export type DataFormErrorHandler = (valid: boolean) => void;
 export type DataFormValidateHandler = (result: DataFormResult) => DataFormErrors;
 export type DataFormRendererRegistry = {[name: string]: () => ReactElement};
 export type DataFormLayoutProvider = (renderers: DataFormRendererRegistry) => ReactElement;
+
 
 export interface DataFormControl {
     type: string;
@@ -278,6 +281,40 @@ function renderCheckbox(control: DataFormControl, context: DataFormRenderContext
         </FormControl>);
 }
 
+function renderDate(control: DataFormControl, context: DataFormRenderContext): ReactElement {
+    let value = resolveValue(control, context);
+    let error = resolveError(control, context);
+
+    if (typeof value === 'undefined' || value === null) {
+        value = undefined;
+    }
+
+    const constraint = control.extra.constraint || undefined;
+    const onlyFuture = constraint === 'only-future';
+    const onlyPast = constraint === 'only-past';
+
+    return (<MuiPickersUtilsProvider utils={MomentUtils}>
+        <KeyboardDatePicker
+            error={!!error}
+            fullWidth
+            disabled={control.disabled}
+            margin="normal"
+            disableFuture={onlyPast}
+            disablePast={onlyFuture}
+            label={control.label}
+            format="DD/MM/YYYY"
+            value={value}
+            onChange={e => {
+                context.onChange(e);
+            }}
+            helperText={error}
+            KeyboardButtonProps={{
+                'aria-label': 'change date',
+            }}
+      />
+    </MuiPickersUtilsProvider>);
+}
+
 function validate(control: DataFormControl, value: any): string | null | undefined {
     if (isBlank(value)) {
         let required = control.required;
@@ -373,7 +410,8 @@ class DataForm extends Component<DataFormProps, DataFormState> {
         'select': renderSelect,
         'autocomplete': renderAutocomplete,
         'checkbox': renderCheckbox,
-        'radio': renderRadio
+        'radio': renderRadio,
+        'date': renderDate
     };
 
     private scheduledTasks: (() => void)[] = [];

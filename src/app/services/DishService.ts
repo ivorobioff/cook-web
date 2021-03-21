@@ -13,6 +13,10 @@ export default class DishService {
     getAll(offset: number, limit: number, filter?: {[name: string]: string}): Observable<Dish[]> {
         return this.http.get('/dishes', { offset, limit, ...filter});
     }
+
+    getAllLightweight(): Observable<Dish[]> {
+        return this.http.get('/lightweight-dishes');
+    }
     
     create(dish: DishToPersist): Observable<Dish> {
         return this.http.post('/dishes', dish);

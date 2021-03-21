@@ -12,7 +12,7 @@ import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayE
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
-import { toNumber } from "../../../support/mapping/converters";
+import { toBlankIfNull, toNumber } from "../../../support/mapping/converters";
 import { checkPositiveInt } from "../../../support/validation/validators";
 import { GrFormClose, GrFormAdd } from 'react-icons/gr'
 import { v4 as uuid } from 'uuid';
@@ -208,7 +208,7 @@ class DishView extends Component<DishProps, DishState> {
 
         const payload: DishToPersist = {
             name: data['name'],
-            notes: data['notes'] || '',
+            notes: data['notes'],
             requiredIngredients
         };
 
@@ -248,6 +248,7 @@ class DishView extends Component<DishProps, DishState> {
             type: 'text',
             label: 'Notes',
             name: 'notes',
+            convertOut: toBlankIfNull,
             value: dish?.notes,
             extra: { multiline: true }
         }];
