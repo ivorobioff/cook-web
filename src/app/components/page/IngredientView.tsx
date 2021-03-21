@@ -238,7 +238,7 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
                 onHandle={this.handleRemoveConfirmation.bind(this)}
                 confirmButtonTitle="Proceed"
                 open={this.state.remove!.open}
-                title="Subject - Delete">
+                title="Ingredient - Delete">
                 {`You are about to delete "${this.state.remove!.ingredient.name}". Do you want to proceed?`}
             </Confirmation>)}
 
@@ -247,7 +247,7 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
                 onClose={this.closeEditor.bind(this)}
                 onSubmit={this.submitEditor.bind(this)}
                 open={this.state.edit!.open}
-                title="Subject - Update" />) }
+                title="Ingredient - Update" />) }
 
         </Fragment>);
     }

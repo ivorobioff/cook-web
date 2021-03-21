@@ -17,4 +17,8 @@ export default class DishService {
     create(dish: DishToPersist): Observable<Dish> {
         return this.http.post('/dishes', dish);
     }
+
+    update(id: string, dish: DishToPersist): Observable<Dish> {
+        return this.http.patch('/dishes/' + id, dish);
+    }
 }

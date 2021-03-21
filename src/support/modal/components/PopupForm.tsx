@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Popup from "./Popup";
-import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormResult, DataFormResultProvider, DataFormTouchHandler} from "../../form/components/DataForm";
+import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormProps, DataFormResult, DataFormResultProvider, DataFormTouchHandler} from "../../form/components/DataForm";
 import {Box} from "@material-ui/core";
 import {Observable} from "rxjs";
 import { singleton } from '../../mapping/operators';
@@ -18,8 +18,9 @@ export interface PopupFormProps {
     fresh?: boolean;
     onTouch?: DataFormTouchHandler;
     layout?: DataFormLayoutProvider;
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-}
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    touched?: boolean
+;}
 
 interface PopupFormState {
     errors?: DataFormErrors;
@@ -39,6 +40,12 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             touched: false,
             failed: false
         };
+    }
+
+    componentDidUpdate(prevProps: PopupFormProps) {
+        if (prevProps.touched !== this.props.touched && this.props.touched === true) {
+            this.touch();
+        }
     }
 
     render() {
