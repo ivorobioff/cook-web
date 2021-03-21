@@ -195,6 +195,10 @@ class DishView extends Component<DishProps, DishState> {
         );
     }
 
+    validatePersister(result: DataFormResult) {
+        return this.ingredientLinePlugin.afterValidate(result, {});
+    }
+
     private definePersisterControls(dish?: Dish): DataFormControl[] {
 
         dish = dish || this.state.persister?.dish;
@@ -266,6 +270,7 @@ class DishView extends Component<DishProps, DishState> {
                 onClose={this.closePersister.bind(this)}
                 onSubmit={this.submitPersister.bind(this)}
                 open={this.state.persister!.open}
+                onValidate={this.validatePersister.bind(this)}
                 title={`Dish - ${ucFirst(this.state.persister!.intent)}`} />) } 
 
             {this.state.remove && (<Confirmation

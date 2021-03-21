@@ -1,7 +1,7 @@
 import { Box, Grid, IconButton } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { GrFormAdd, GrFormClose } from "react-icons/gr";
-import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
+import DataForm, { DataFormControl, DataFormErrors, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
 import { v4 as uuid } from 'uuid';
 import Dish, { RequiredIngredient } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";
@@ -226,4 +226,22 @@ export default class IngredientLinePlugin {
         ];
     }
 
+    afterValidate(data: DataFormResult, errors: DataFormErrors): DataFormErrors {
+
+        const ingredientIds: string[] = [];
+
+        Object.keys(data).forEach(key => {
+            if (key.startsWith('ingredient_')) {
+                const ingredientId = data[key];
+
+                if (ingredientIds.includes(ingredientId)) {
+                    errors[key] = 'This is duplicate!';
+                } else {
+                    ingredientIds.push(ingredientId);
+                }
+            }
+        });
+
+        return errors;
+    } 
 }

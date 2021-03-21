@@ -263,6 +263,10 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
                 })
             )
     }
+
+    validateFinisher(result: DataFormResult) {
+        return this.ingredientLinePlugin.afterValidate(result, {});
+    }
     
     render() {
 
@@ -296,6 +300,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
                 layout={this.defineFinisherLayout.bind(this)}
                 controls={this.state.finish!.controls}
                 onClose={this.closeFinisher.bind(this)}
+                onValidate={this.validateFinisher.bind(this)}
                 onSubmit={this.submitFinisher.bind(this)}
                 open={this.state.finish!.open}
                 title={`Schedule - Finish`} />) } 
