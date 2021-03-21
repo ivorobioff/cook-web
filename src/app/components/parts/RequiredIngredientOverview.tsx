@@ -20,10 +20,6 @@ export interface RequiredIngredientOverviewState {
 
 class RequiredIngredientOverview extends Component<RequiredIngredientOverviewProps, RequiredIngredientOverviewState> {
 
-    constructor(props: RequiredIngredientOverviewProps) {
-        super(props);
-    }
-
     private renderIngredient(requiredIngredient: RequiredIngredient, i: number): ReactElement {
 
         const requiredQuantity = requiredIngredient.quantity;

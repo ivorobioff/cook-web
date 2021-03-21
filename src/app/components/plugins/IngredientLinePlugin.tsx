@@ -1,7 +1,7 @@
 import { Box, Grid, IconButton } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { GrFormAdd, GrFormClose } from "react-icons/gr";
-import DataForm, { DataFormControl, DataFormErrors, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
+import { DataFormControl, DataFormErrors, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
 import { v4 as uuid } from 'uuid';
 import Dish, { RequiredIngredient } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";

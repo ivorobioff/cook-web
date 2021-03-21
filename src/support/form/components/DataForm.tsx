@@ -288,7 +288,7 @@ function renderDate(control: DataFormControl, context: DataFormRenderContext): R
     let error = resolveError(control, context);
 
     if (typeof value === 'undefined' || value === null) {
-        value = undefined;
+        value = null;
     }
 
     const constraint = control.extra.constraint || undefined;
@@ -310,9 +310,6 @@ function renderDate(control: DataFormControl, context: DataFormRenderContext): R
                 context.onChange(e);
             }}
             helperText={error}
-            KeyboardButtonProps={{
-                'aria-label': 'change date',
-            }}
       />
     </MuiPickersUtilsProvider>);
 }
