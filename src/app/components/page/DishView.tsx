@@ -12,7 +12,7 @@ import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayE
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
-import { AiFillDelete, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
+import { AiFillDelete, AiOutlineCalendar, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
 import Confirmation from "../../../support/modal/components/Confirmation";
 import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/IngredientLinePlugin";
 import HistoryService from "../../services/HistoryService";
@@ -20,6 +20,8 @@ import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
 import { Waste } from "../../models/History";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
+import ScheduleService from "../../services/ScheduleService";
+import { formatMoment } from "../../../support/mapping/converters";
 
 interface DishProps {
     container: Container;
@@ -41,6 +43,11 @@ interface DishState {
         open: boolean,
         data: History[]
     },
+    schedule?: {
+        dish: Dish,
+        open: boolean,
+        controls: DataFormControl[]
+    },
     remove?: {
         open: true,
         dish: Dish
@@ -58,6 +65,7 @@ class DishView extends Component<DishProps, DishState> {
     private dishService: DishService;
     private ingredientService: IngredientService;
     private historyService: HistoryService;
+    private scheduleService: ScheduleService;
 
     private ingredientLinePlugin = new IngredientLinePlugin(
         () => ({
@@ -133,6 +141,17 @@ class DishView extends Component<DishProps, DishState> {
     };
 
     actions: DataViewAction[] = [{
+        icon: <AiOutlineCalendar />,
+        onClick: dish => {
+            this.setState({
+                schedule: {
+                    open: true,
+                    dish,
+                    controls: this.defineSchedulerControls()
+                }
+            });
+        }
+    }, {
         icon: <AiOutlineHistory />,
         onClick: dish => {
             this.setState({
@@ -175,6 +194,7 @@ class DishView extends Component<DishProps, DishState> {
         this.dishService = props.container.get(DishService);
         this.ingredientService = props.container.get(IngredientService);
         this.historyService = props.container.get(HistoryService);
+        this.scheduleService = props.container.get(ScheduleService);
 
         this.state = {
             data: [],
@@ -300,6 +320,37 @@ class DishView extends Component<DishProps, DishState> {
             })
         })
     }
+    
+    closeScheduler() {
+        this.setState({
+            schedule: cloneWith(this.state.schedule, {
+                open: false
+            })
+        })
+    }
+
+    submitScheduler(data: DataFormResult) {
+        return this.scheduleService.create({
+            dishId: this.state.schedule!.dish.id,
+            scheduledOn: data['scheduledOn']
+        });
+    }
+
+    private defineSchedulerControls(): DataFormControl[] {
+        return [
+            {
+                type: 'date',
+                label: 'Schedule On',
+                name: 'scheduledOn',
+                required: true,
+                value: null,
+                convertOut: formatMoment('YYYY-MM-DDT00:00:00'),
+                extra: {
+                    constraint: 'only-future'
+                }
+            }
+        ];
+    }
 
     render() {
         
@@ -346,6 +397,13 @@ class DishView extends Component<DishProps, DishState> {
                             columns={this.historyColumns} />
                     </DataPaper>
             </Popup>)}
+
+            {this.state.schedule && (<PopupForm
+                controls={this.state.schedule!.controls}
+                onClose={this.closeScheduler.bind(this)}
+                onSubmit={this.submitScheduler.bind(this)}
+                open={this.state.schedule!.open}
+                title="Dish - Schedule" />) }
         </Fragment>);
     }
 }
