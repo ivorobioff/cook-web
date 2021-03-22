@@ -20,6 +20,7 @@ import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/Ingredien
 import Ingredient from "../../models/Ingredient";
 import IngredientService from "../../services/IngredientService";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
+import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
@@ -186,6 +187,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
             label: 'Schedule On',
             name: 'scheduledOn',
             required: true,
+            validate: checkAll(checkMoment('DD/MM/YYYY'), checkPresentOrFuture('DD/MM/YYYY')),
             convertOut: formatMoment('YYYY-MM-DDT00:00:00'),
             extra: {
                 constraint: 'only-future'
