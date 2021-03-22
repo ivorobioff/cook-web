@@ -4,7 +4,7 @@ import {clone, cloneExcept, cloneWith, hasField, objectEmpty, readField, tryFiel
 import {isBlank} from "../../validation/utils";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { Autocomplete } from '@material-ui/lab';
-import { DatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 
 export type DataFormResult = {[field: string]: any};
@@ -296,7 +296,7 @@ function renderDate(control: DataFormControl, context: DataFormRenderContext): R
     const onlyPast = constraint === 'only-past';
 
     return (<MuiPickersUtilsProvider utils={MomentUtils}>
-        <DatePicker
+        <KeyboardDatePicker
             error={!!error}
             fullWidth
             disabled={control.disabled}
