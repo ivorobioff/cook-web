@@ -22,6 +22,7 @@ import { Waste } from "../../models/History";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import ScheduleService from "../../services/ScheduleService";
 import { formatMoment } from "../../../support/mapping/converters";
+import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 
 interface DishProps {
     container: Container;
@@ -344,6 +345,7 @@ class DishView extends Component<DishProps, DishState> {
                 name: 'scheduledOn',
                 required: true,
                 value: null,
+                validate: checkAll(checkMoment('DD/MM/YYYY'), checkPresentOrFuture('DD/MM/YYYY')),
                 convertOut: formatMoment('YYYY-MM-DDT00:00:00'),
                 extra: {
                     constraint: 'only-future'

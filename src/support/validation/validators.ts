@@ -1,4 +1,4 @@
-import {isMoney, isPositiveFloat, isEmail, isFloat, isZeroOrPositiveInt, isPositiveInt, isZeroOrPositiveFloat} from "./utils";
+import {isMoney, isPositiveFloat, isEmail, isFloat, isZeroOrPositiveInt, isPositiveInt, isZeroOrPositiveFloat, isMoment, isPresentOrFuture} from "./utils";
 
 export function checkAll(...checkers: ((value: any) => string | null)[]): (value: any) => string | null {
     return (v) => {
@@ -75,4 +75,24 @@ export function checkLength(value: any, min: number, max?: number) {
     }
 
     return null;
+}
+
+export function checkMoment(format: string) {
+    return (value: any) => {
+        if (!isMoment(value, format)) {
+            return 'Must be ' + format;
+        }
+
+        return null;
+    }
+}
+
+export function checkPresentOrFuture(format: string) {
+    return (value: any) => {
+        if (!isPresentOrFuture(value, format)) {
+            return 'Must be present or future';
+        }
+
+        return null;
+    }
 }

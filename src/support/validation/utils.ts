@@ -1,4 +1,5 @@
 import * as EmailValidator from 'email-validator';
+import moment from 'moment';
 
 export function isBlank(value: any): boolean {
 
@@ -60,4 +61,16 @@ export function isZeroOrPositiveInt(value: any): boolean {
 
 export function isPositiveInt(value: any): boolean {
     return isInt(value) && parseInt(value) > 0;
+}
+
+export function isMoment(value: any, format: string): boolean  {
+    return moment(value, format, true).isValid();
+}
+
+export function isPresentOrFuture(value: any, format: string): boolean {
+    if (!isMoment(value, format)) {
+        return false;
+    }
+
+    return moment(value, format).isSameOrAfter(moment(), 'date');
 }
