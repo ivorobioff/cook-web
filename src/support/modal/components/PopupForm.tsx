@@ -1,26 +1,30 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import Popup from "./Popup";
-import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormResult, DataFormResultProvider, DataFormTouchHandler} from "../../form/components/DataForm";
+import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormProps, DataFormResult, DataFormResultProvider, DataFormTouchHandler} from "../../form/components/DataForm";
 import {Box} from "@material-ui/core";
 import {Observable} from "rxjs";
 import { singleton } from '../../mapping/operators';
 
 export type PopupFormSubmitHandler = (data: DataFormResult) => Observable<any>;
 
-export interface PopupFormProps {
+export interface PopupFormCommonProps {
     open: boolean;
     onSubmit: PopupFormSubmitHandler;
     onClose: () => void;
     onOpen?: () => void;
     title: string;
-    controls: DataFormControl[];
     onValidate?: (result: DataFormResult) => DataFormErrors;
     fresh?: boolean;
     onTouch?: DataFormTouchHandler;
     layout?: DataFormLayoutProvider;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     touched?: boolean
-;}
+}
+
+export interface PopupFormProps extends PopupFormCommonProps {
+    controls: DataFormControl[];
+    form?: (props: DataFormProps) => ReactElement;
+}
 
 interface PopupFormState {
     errors?: DataFormErrors;
@@ -54,14 +58,10 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             open,
             title,
             onClose,
-            controls,
-            fresh,
-            layout,
             size
         } = this.props;
 
         const {
-            errors,
             touched,
             failed,
             globalError
@@ -77,17 +77,38 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
                        open={open}
                        onClose={onClose}
                        onHandle={this.handle.bind(this)}>
-                <DataForm controls={controls}
-                        layout={layout}
-                        fresh={fresh}
-                        onValidate={this.props.onValidate}
-                        errors={errors}
-                        onReady={this.ready.bind(this)}
-                        onTouch={this.touch.bind(this)}
-                        onError={this.fail.bind(this)} />
-
+                {this.createForm()}
             <Box m={2} />
         </Popup>);
+    }
+
+    private createForm(): ReactElement {
+        const {
+            controls,
+            fresh,
+            layout
+        } = this.props;
+
+        const {
+            errors
+        } = this.state;
+
+        const props = {
+            controls,
+            layout,
+            fresh,
+            onValidate: this.props.onValidate,
+            errors,
+            onReady: this.ready.bind(this),
+            onTouch: this.touch.bind(this),
+            onError: this.fail.bind(this)
+        }
+
+        if (this.props.form) {
+            return this.props.form(props);
+        }
+
+        return (<DataForm { ...props} />);
     }
 
     open() {

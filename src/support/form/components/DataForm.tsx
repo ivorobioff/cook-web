@@ -38,9 +38,8 @@ export interface DataFormControl {
     extra?: any;
 }
 
-export interface DataFormProps {
+export interface DataFormCommonProps {
     className?: string;
-    controls: DataFormControl[];
     errors?: {[field: string]: string};
     onReady?: DataFormReadyHandler;
     onTouch?: DataFormTouchHandler;
@@ -49,6 +48,11 @@ export interface DataFormProps {
     autoComplete?: 'on'|'off';
     fresh?: boolean;
     layout?: DataFormLayoutProvider;
+}
+
+export interface DataFormProps extends DataFormCommonProps {
+    controls: DataFormControl[];
+    unwrap?: boolean;
 }
 
 type DataFormInput = { value: any, error?: string | null | undefined};
@@ -515,7 +519,8 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             controls,
             className,
             autoComplete,
-            children
+            children,
+            unwrap
         } = this.props;
 
         let layout = this.props.layout;
@@ -541,13 +546,16 @@ class DataForm extends Component<DataFormProps, DataFormState> {
                 return renderer(control, this.createRenderContext(control));
             }
         });
-        
-        return (<form noValidate autoComplete={autoComplete} className={className}>
-            { layout(renderers) }
-            {children}
-        </form>);
-    }
 
+        const parts = [layout(renderers), children];
+
+        if (unwrap) {
+            return (<Fragment>{ parts }</Fragment>)
+        }
+        
+        return (<form noValidate autoComplete={autoComplete} className={className}>{ parts }</form>);
+    }
+    
     private createRenderContext(control: DataFormControl): DataFormRenderContext {
         return {
             onChange: value => {
