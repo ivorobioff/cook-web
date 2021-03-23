@@ -553,13 +553,17 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             }
         });
 
-        const parts = [layout(renderers), children];
-
         if (unwrap) {
-            return (<Fragment>{ parts }</Fragment>)
+            return (<Fragment>
+                {layout(renderers)}
+                {children}
+            </Fragment>)
         }
         
-        return (<form noValidate autoComplete={autoComplete} className={className}>{ parts }</form>);
+        return (<form noValidate autoComplete={autoComplete} className={className}>
+            {layout(renderers)}
+            {children}
+        </form>);
     }
     
     private createRenderContext(control: DataFormControl): DataFormRenderContext {

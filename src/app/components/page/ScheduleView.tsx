@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from "react"
 import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
-import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
+import DataForm, { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
 import Container from "../../../support/ioc/Container";
 import Schedule, { FinishedSchedule, ScheduleToPersist } from "../../models/Schedule";
 import ScheduleService from "../../services/ScheduleService";
@@ -21,6 +21,8 @@ import Ingredient from "../../models/Ingredient";
 import IngredientService from "../../services/IngredientService";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
+import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
+import IngredientLineForm from "../parts/IngredientLineForm";
 
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
@@ -100,7 +102,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
                 finish: {
                     open: true,
                     schedule,
-                    controls: this.ingredientLinePlugin.preloadIngredientLineControls(schedule.dish)
+                    controls: this.defineFinisherControls()
                 }
             });
         }
@@ -237,14 +239,6 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
         }];
     }
 
-    private defineFinisherLayout(renderers: DataFormRendererRegistry): ReactElement {
-        return (<Fragment>
-            { renderers['notes']() }
-            <Box m={2} />
-            { this.ingredientLinePlugin.renderIngredientLines(renderers) }
-        </Fragment>);
-    }
-
     closeFinisher() {
         this.setState({
             finish: cloneWith(this.state.finish, {
@@ -303,10 +297,25 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
                 title="Schedule - Delete">
                 {`You are about to delete "${this.state.remove!.schedule.dish.name}". Do you want to proceed?`}
             </Confirmation>)}
-            {this.state.finish && (<PopupForm size="sm"
+            {this.state.finish && (<PopupFormComposite size="sm"
                 touched={this.state.finish!.touched }
-                layout={this.defineFinisherLayout.bind(this)}
-                controls={this.state.finish!.controls}
+                elements={[
+                    {
+                        type: 'form',
+                        component: props => <DataForm {...props} controls={this.state.finish!.controls } />
+                    },
+                    {
+                        type: 'custom',
+                        component: <Box m={2} />
+                    },
+                    {
+                        type: 'form',
+                        component: props => <IngredientLineForm
+                            { ...props }
+                            dish={this.state.finish!.schedule.dish} 
+                            ingredients={this.state.ingredients} />
+                    }
+                ]}
                 onClose={this.closeFinisher.bind(this)}
                 onValidate={this.validateFinisher.bind(this)}
                 onSubmit={this.submitFinisher.bind(this)}

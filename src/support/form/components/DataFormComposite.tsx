@@ -1,4 +1,4 @@
-import React, { Component, ReactElement } from 'react';
+import React, { Component, Fragment, ReactElement } from 'react';
 import { cloneExcept, cloneWith, mergeWith, objectEmpty } from '../../random/utils';
 import { DataFormCommonProps, DataFormResultProvider, DataFormResult, DataFormErrors } from './DataForm';
 
@@ -10,7 +10,7 @@ export type DataFormCompositeComponentProvider = (props: DataFormCompositeIntern
 
 export interface DataFormCompositeElement {
     type: 'form' | 'custom';
-    component: DataFormCompositeComponentProvider;
+    component: DataFormCompositeComponentProvider | ReactElement;
 }
 
 export interface DataFormCompositeProps extends DataFormCommonProps {
@@ -28,6 +28,12 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
     get totalForms(): number {
         return this.props.elements.filter(e => e.type === 'form').length;
     }
+
+    constructor(props: DataFormCompositeProps) {
+        super(props);
+
+        this.state = {};
+    }
     
     render() {
 
@@ -42,7 +48,7 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
         } = this.state;
 
         return (<form noValidate autoComplete={autoComplete} className={className}>
-            { elements.map(element => {
+            { elements.map((element, i) => {
 
                 const internalProps = cloneWith(cloneExcept(this.props, 'onValidate'), {
                     unwrap: true,
@@ -50,7 +56,11 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
                     errors
                 });
 
-                return element.component(internalProps);
+                if (typeof element.component !== 'function') {
+                    return (<Fragment key={`e-${i}`}>{element.component}</Fragment>);
+                }
+
+                return (<Fragment key={`e-${i}`}>{element.component(internalProps)}</Fragment>);
             }) }
         </form>)
     }
