@@ -20,6 +20,9 @@ export type DataFormValidateHandler = (result: DataFormResult) => DataFormErrors
 export type DataFormRendererRegistry = {[name: string]: () => ReactElement};
 export type DataFormLayoutProvider = (renderers: DataFormRendererRegistry) => ReactElement;
 
+export class DataFormHook {
+    provider?:  DataFormResultProvider;
+}
 
 export interface DataFormControl {
     type: string;
@@ -41,7 +44,14 @@ export interface DataFormControl {
 export interface DataFormCommonProps {
     className?: string;
     errors?: {[field: string]: string};
+
+    /**
+     * @deprecated use hook instead
+     */
     onReady?: DataFormReadyHandler;
+
+    hook?: DataFormHook;
+
     onTouch?: DataFormTouchHandler;
     onError?: DataFormErrorHandler;
     onValidate?: DataFormValidateHandler;
@@ -427,37 +437,42 @@ class DataForm extends Component<DataFormProps, DataFormState> {
         };
 
         if (this.props.onReady) {
-            this.props.onReady(() => {
-
-                let errors = validateAll(this.props.controls, this.state.inputs);
-
-                let result = null;
-
-                if (objectEmpty(errors)) {
-                    result = createResult(this.props.controls, this.state.inputs);
-
-                    if (this.props.onValidate) {
-                        errors = cloneExcept(this.props.onValidate(result), ...disabledControlNames(this.props.controls));
-                    }
-                }
-
-                if (!objectEmpty(errors)) {
-                    let inputs = clone(this.state.inputs);
-
-                    assignErrors(errors, inputs);
-
-                    this.setState({ inputs });
-
-                    if (this.props.onError) {
-                        this.props.onError(true);
-                    }
-
-                    result = null;
-                }
-
-                return result;
-            });
+            this.props.onReady(this.prepareResult.bind(this));
         }
+
+        if (this.props.hook) {
+            this.props.hook.provider = this.prepareResult.bind(this);
+        }
+    }
+    
+    prepareResult() {
+        let errors = validateAll(this.props.controls, this.state.inputs);
+
+        let result = null;
+
+        if (objectEmpty(errors)) {
+            result = createResult(this.props.controls, this.state.inputs);
+
+            if (this.props.onValidate) {
+                errors = cloneExcept(this.props.onValidate(result), ...disabledControlNames(this.props.controls));
+            }
+        }
+
+        if (!objectEmpty(errors)) {
+            let inputs = clone(this.state.inputs);
+
+            assignErrors(errors, inputs);
+
+            this.setState({ inputs });
+
+            if (this.props.onError) {
+                this.props.onError(true);
+            }
+
+            result = null;
+        }
+
+        return result;
     }
 
     componentDidUpdate(prevProps: DataFormProps) {

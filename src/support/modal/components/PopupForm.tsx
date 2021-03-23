@@ -1,6 +1,6 @@
 import React, { Component, ReactElement } from 'react';
 import Popup from "./Popup";
-import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormProps, DataFormResult, DataFormResultProvider, DataFormTouchHandler} from "../../form/components/DataForm";
+import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataFormProps, DataFormResult, DataFormTouchHandler, DataFormHook } from "../../form/components/DataForm";
 import {Box} from "@material-ui/core";
 import {Observable} from "rxjs";
 import { singleton } from '../../mapping/operators';
@@ -35,7 +35,7 @@ interface PopupFormState {
 
 class PopupForm extends Component<PopupFormProps, PopupFormState> {
 
-    private provider?: DataFormResultProvider;
+    private formHook = new DataFormHook();
 
     constructor(props: PopupFormProps) {
         super(props);
@@ -99,7 +99,7 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             fresh,
             onValidate: this.props.onValidate,
             errors,
-            onReady: this.ready.bind(this),
+            hook: this.formHook,
             onTouch: this.touch.bind(this),
             onError: this.fail.bind(this)
         }
@@ -130,7 +130,9 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
         this.setState({ globalError: undefined });
 
         return singleton((done, reject) => {
-            let submission = this.provider ? this.provider() : null;
+            const provider = this.formHook.provider;
+
+            let submission = provider ? provider() : null;
 
             if (submission !== null) {
                 this.props.onSubmit(submission).subscribe({
@@ -159,10 +161,6 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
                 done(true);
             }
         });
-    }
-
-    ready(provider: DataFormResultProvider) {
-        this.provider = provider;
     }
 
     touch() {

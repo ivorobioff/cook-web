@@ -1,9 +1,14 @@
 import React, { Component, Fragment, ReactElement } from 'react';
 import { cloneExcept, cloneWith, mergeWith, objectEmpty } from '../../random/utils';
-import { DataFormCommonProps, DataFormResultProvider, DataFormResult, DataFormErrors } from './DataForm';
+import { DataFormCommonProps, DataFormResult, DataFormErrors, DataFormHook } from './DataForm';
 
 export interface DataFormCompositeInternalProps extends DataFormCommonProps {
     unwrap: boolean;
+}
+
+interface DataFormCompositeInternalElement {
+    hook?: DataFormHook;
+    source: DataFormCompositeElement;
 }
 
 export type DataFormCompositeComponentProvider = (props: DataFormCompositeInternalProps) => ReactElement;
@@ -19,11 +24,10 @@ export interface DataFormCompositeProps extends DataFormCommonProps {
 
 interface DataFormCompositeState {
     errors?: DataFormErrors;
+    elements: DataFormCompositeInternalElement[];
 }
 
 class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompositeState> {
-
-    private providers: DataFormResultProvider[] = [];
 
     get totalForms(): number {
         return this.props.elements.filter(e => e.type === 'form').length;
@@ -32,35 +36,82 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
     constructor(props: DataFormCompositeProps) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            elements: this.createInternalElements(this.props.elements)
+        };
+
+        if (props.hook) {
+            props.hook.provider = this.prepareResult.bind(this);
+        }
+    }
+
+    private createInternalElements(elements: DataFormCompositeElement[]): DataFormCompositeInternalElement[] {
+        return elements.map(element => ({
+            source: element,
+            hook: element.type === 'form' ? new DataFormHook()  : undefined  
+        }));
+    }
+    
+
+    private prepareResult(): DataFormResult | null {
+        let mergedData: DataFormResult = {};
+
+        for (let element of this.state.elements) {
+            if (element.hook) {
+                const provider = element.hook!.provider!;
+
+                const data = provider();
+
+                if (!data) {
+                    return null;
+                }
+
+                mergeWith(mergedData, data);
+            }    
+        }
+
+        if (this.props.onValidate) {
+            const errors = this.props.onValidate(mergedData);
+
+            if (!objectEmpty(errors)) {
+                this.setState({ errors });
+
+                return null;
+            }
+        }
+
+        return mergedData;
     }
     
     render() {
 
         const {
             className,
-            autoComplete,
-            elements
+            autoComplete
         } = this.props;
 
         const {
-            errors
+            errors,
+            elements
         } = this.state;
 
         return (<form noValidate autoComplete={autoComplete} className={className}>
             { elements.map((element, i) => {
 
+                const component = element.source.component;
+                const hook = element.hook;
+
+                if (typeof component !== 'function') {
+                    return (<Fragment key={`e-${i}`}>{component}</Fragment>);
+                }
+                
                 const internalProps = cloneWith(cloneExcept(this.props, 'onValidate'), {
                     unwrap: true,
-                    onReady: this.ready.bind(this),
+                    hook,
                     errors
                 });
 
-                if (typeof element.component !== 'function') {
-                    return (<Fragment key={`e-${i}`}>{element.component}</Fragment>);
-                }
-
-                return (<Fragment key={`e-${i}`}>{element.component(internalProps)}</Fragment>);
+                return (<Fragment key={`e-${i}`}>{component(internalProps)}</Fragment>);
             }) }
         </form>)
     }
@@ -72,36 +123,16 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
         if (currentErrors !== prevErrors) {
             this.setState({ errors: currentErrors });
         }
-    }
 
-    ready(provider: DataFormResultProvider) {
-        this.providers.push(provider);
-        
-        if (this.providers.length === this.totalForms && this.props.onReady) {
+        const currentElements = this.props.elements;
+        const prevElements = prevProps.elements;
 
-            const providers = this.providers;
-            this.providers = [];
-
-            this.props.onReady(() => {
-                let mergedData: DataFormResult = {};
-
-                providers.forEach(provider => mergeWith(mergedData, provider()));
-
-                if (this.props.onValidate) {
-                    const errors = this.props.onValidate(mergedData);
-
-                    if (!objectEmpty(errors)) {
-                        this.setState({ errors });
-
-                        return null;
-                    }
-                }
-
-                return mergedData;
+        if (currentElements !== prevElements) {
+            this.setState({
+                elements: this.createInternalElements(currentElements)
             });
         }
     }
-
 }
 
 export default DataFormComposite;

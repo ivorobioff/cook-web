@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from 'react';
-import DataForm, { DataFormCommonProps, DataFormControl, DataFormRendererRegistry } from '../../../support/form/components/DataForm';
+import DataForm, { DataFormCommonProps, DataFormControl, DataFormRendererRegistry, DataFormResult, DataFormResultProvider } from '../../../support/form/components/DataForm';
 import Dish, { RequiredIngredient } from '../../models/Dish';
 import Ingredient from '../../models/Ingredient';
 import { v4 as uuid } from 'uuid';
@@ -7,6 +7,7 @@ import { checkPositiveInt } from '../../../support/validation/validators';
 import { toNumber } from '../../../support/mapping/converters';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
+import { cloneExcept } from '../../../support/random/utils';
 
 function makeQuantityLabel(unit?: string): string {
     return unit ? `Quantity (${unit})` : 'Quantity';
@@ -190,6 +191,41 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             touched: true
         })
     }
+
+    ready(provider: DataFormResultProvider) {
+
+        if (this.props.onReady) {
+            this.props.onReady(() => {
+                const data = provider();
+
+                if (!data) {
+                    return data;
+                }
+
+                return { wastes: this.extractWastes(data) }
+            })
+        }
+    }
+
+    private extractWastes(data: DataFormResult): { ingredientId: string; quantity: number }[] {
+        const quantities: {[name: string]: string} = {};
+        const ingredientIds: {[name: string]: string} = {};
+
+        Object.keys(data).forEach(key => {
+            if (key.startsWith('ingredient_')) {
+                ingredientIds[key.split('_')[1]] = data[key];
+            }
+
+            if (key.startsWith('quantity_')) {
+                quantities[key.split('_')[1]] = data[key];
+            }
+        });
+
+        return Object.keys(ingredientIds).map(key => ({
+            ingredientId: ingredientIds[key],
+            quantity: parseInt(quantities[key])
+        }));
+    }
     
     createLayout(renderers: DataFormRendererRegistry): ReactElement {
         const ingredientLineIds = this.state.controls
@@ -230,7 +266,13 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     }
     
     render() {
-        return (<DataForm {...this.props} controls={this.state.controls} layout={this.createLayout.bind(this)} />);
+
+        const props = cloneExcept(this.props, 'onReady');
+
+        return (<DataForm {...props}
+            onReady={this.ready.bind(this)} 
+            controls={this.state.controls} 
+            layout={this.createLayout.bind(this)} />);
     }
 }
 
