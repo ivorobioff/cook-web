@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from 'react';
-import DataForm, { DataFormCommonProps, DataFormControl, DataFormRendererRegistry, DataFormResult, DataFormResultProvider } from '../../../support/form/components/DataForm';
+import DataForm, { DataFormCommonProps, DataFormControl, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
 import Dish, { RequiredIngredient } from '../../models/Dish';
 import Ingredient from '../../models/Ingredient';
 import { v4 as uuid } from 'uuid';
@@ -8,6 +8,7 @@ import { toNumber } from '../../../support/mapping/converters';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
 import { cloneExcept } from '../../../support/random/utils';
+import { PopupFormCoordinator } from '../../../support/modal/components/PopupForm';
 
 function makeQuantityLabel(unit?: string): string {
     return unit ? `Quantity (${unit})` : 'Quantity';
@@ -47,7 +48,6 @@ export interface IngredientLineFormProps extends DataFormCommonProps {
 
 interface IngredientLineFormState {
     controls: DataFormControl[];
-    touched?: boolean;
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -62,6 +62,8 @@ const styles = (theme: Theme) => createStyles({
 
 class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLineFormState> {
 
+    private hook = new DataFormHook();
+
     constructor(props: IngredientLineFormProps) {
         super(props);
 
@@ -69,6 +71,19 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             controls: this.props.dish 
                 ? this.createControlsFromDish(this.props.dish)
                 :  this.createControls(uuid()) 
+        }
+
+        if (this.props.hook) {
+            this.props.hook.provider = () => {
+                const provider = this.hook.provider!
+                const data = provider();
+
+                if (!data) {
+                    return data;
+                }
+
+                return { wastes: this.extractWastes(data) }
+            }
         }
     }
 
@@ -177,9 +192,10 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             controls: this.defineControls({
                 action: 'remove',
                 lineId
-            }),
-            touched: true
+            })
         });
+
+        this.touch();
     }
 
     private addIngredientLineControls() {
@@ -187,24 +203,10 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             controls: this.defineControls({
                 action: 'add',
                 lineId: uuid()
-            }),
-            touched: true
-        })
-    }
-
-    ready(provider: DataFormResultProvider) {
-
-        if (this.props.onReady) {
-            this.props.onReady(() => {
-                const data = provider();
-
-                if (!data) {
-                    return data;
-                }
-
-                return { wastes: this.extractWastes(data) }
             })
-        }
+        });
+
+        this.touch();
     }
 
     private extractWastes(data: DataFormResult): { ingredientId: string; quantity: number }[] {
@@ -264,13 +266,21 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         })}
         </Fragment>);
     }
+
+    touch() {
+        const coordinator: PopupFormCoordinator = this.props.attributes?.popupFormCoordinator;
+
+        if (coordinator) {
+            coordinator.setTouched();
+        }
+    }
     
     render() {
 
         const props = cloneExcept(this.props, 'onReady');
 
         return (<DataForm {...props}
-            onReady={this.ready.bind(this)} 
+            hook={this.hook}
             controls={this.state.controls} 
             layout={this.createLayout.bind(this)} />);
     }

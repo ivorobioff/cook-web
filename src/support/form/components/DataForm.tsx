@@ -57,6 +57,7 @@ export interface DataFormCommonProps {
     onValidate?: DataFormValidateHandler;
     autoComplete?: 'on'|'off';
     fresh?: boolean;
+    attributes?: {[name: string]: any};
 }
 
 export interface DataFormProps extends DataFormCommonProps {

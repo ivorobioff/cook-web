@@ -56,18 +56,24 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
     private prepareResult(): DataFormResult | null {
         let mergedData: DataFormResult = {};
 
+        let failed = false;
+
         for (let element of this.state.elements) {
             if (element.hook) {
                 const provider = element.hook!.provider!;
 
                 const data = provider();
 
-                if (!data) {
-                    return null;
+                if (data) {
+                    mergeWith(mergedData, data)
+                } else {
+                    failed = true;
                 }
-
-                mergeWith(mergedData, data);
             }    
+        }
+
+        if (failed) {
+            return null;
         }
 
         if (this.props.onValidate) {
