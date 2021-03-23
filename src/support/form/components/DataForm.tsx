@@ -44,15 +44,15 @@ export interface DataFormCommonProps {
     onReady?: DataFormReadyHandler;
     onTouch?: DataFormTouchHandler;
     onError?: DataFormErrorHandler;
-    onValidate?: DataFormValidateHandler,
+    onValidate?: DataFormValidateHandler;
     autoComplete?: 'on'|'off';
     fresh?: boolean;
-    layout?: DataFormLayoutProvider;
 }
 
 export interface DataFormProps extends DataFormCommonProps {
     controls: DataFormControl[];
     unwrap?: boolean;
+    layout?: DataFormLayoutProvider;
 }
 
 type DataFormInput = { value: any, error?: string | null | undefined};
@@ -464,12 +464,18 @@ class DataForm extends Component<DataFormProps, DataFormState> {
 
         // assigned external errors
         if (this.props.errors !== prevProps.errors) {
-            let errors = this.props.errors || {};
 
             let disabledControls = disabledControlNames(this.props.controls);
             let lostControls = lostControlNames(this.props.controls, this.state.inputs);
 
-            errors = cloneExcept(errors, ...disabledControls, ...lostControls);
+            let errors: DataFormErrors = {};
+            let possibleErrors = this.props.errors || {}
+    
+            this.props.controls.forEach(control => {
+                if (possibleErrors[control.name] && !disabledControls.includes(control.name)) {
+                    errors[control.name] = possibleErrors[control.name];
+                }
+            });
 
             let inputs = cloneExcept(this.state.inputs, ...lostControls);
 

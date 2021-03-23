@@ -16,7 +16,6 @@ export interface PopupFormCommonProps {
     onValidate?: (result: DataFormResult) => DataFormErrors;
     fresh?: boolean;
     onTouch?: DataFormTouchHandler;
-    layout?: DataFormLayoutProvider;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     touched?: boolean
 }
@@ -24,6 +23,7 @@ export interface PopupFormCommonProps {
 export interface PopupFormProps extends PopupFormCommonProps {
     controls: DataFormControl[];
     form?: (props: DataFormProps) => ReactElement;
+    layout?: DataFormLayoutProvider;
 }
 
 interface PopupFormState {

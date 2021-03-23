@@ -23,7 +23,7 @@ export function ucFirst(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function cloneExcept<T>(o: T, ...excluded: string[]): T {
+export function cloneExcept<T>(o: T, ...excluded: string[]): any {
     let result = Object.assign({}, o) as any;
 
     excluded.forEach(e => delete result[e]);
@@ -31,8 +31,12 @@ export function cloneExcept<T>(o: T, ...excluded: string[]): T {
     return result;
 }
 
-export function cloneWith<T>(o: T, ...source: any[]): T {
-    return Object.assign({}, o, ...source);
+export function cloneWith<T, S>(o: T, source: S): T & S {
+    return Object.assign({}, o, source);
+}
+
+export function mergeWith<T, S>(target:T, source:S) {
+    Object.assign(target, source);
 }
 
 export function clone<T>(o: T): T {

@@ -1,10 +1,10 @@
 import React, { Component, ReactElement } from 'react';
 import { DataFormCommonProps, DataFormProps } from '../../form/components/DataForm';
-import DataFormComposite, { DataFormProvider } from '../../form/components/DataFormComposite';
+import DataFormComposite, { DataFormCompositeElement } from '../../form/components/DataFormComposite';
 import PopupForm, { PopupFormCommonProps } from './PopupForm';
 
 export interface PopupFormCompositeProps extends PopupFormCommonProps {
-    forms: DataFormProvider[];
+    elements: DataFormCompositeElement[];
 }
 
 interface PopupFormCompositeState {
@@ -17,7 +17,7 @@ class PopupFormComposite extends Component<PopupFormCompositeProps, PopupFormCom
 
         const commonProps: DataFormCommonProps = props;
 
-        return (<DataFormComposite { ...commonProps} forms={ this.props.forms } />)
+        return (<DataFormComposite { ...commonProps} elements={ this.props.elements } />)
     }
 
     render() {
