@@ -100,8 +100,8 @@ class DishView extends Component<DishProps, DishState> {
             name: 'wastes',
             title: 'Ingredients Used',
             component: history => (<Fragment>
-                {history.wastes.map((waste: Waste) => {
-                    return (<div>{ waste.ingredientName } - {waste.quantity} {waste.ingredientUnit}</div>)
+                {history.wastes.map((waste: Waste, i: number) => {
+                    return (<div key={`i-${i}`}>{ waste.ingredientName } - {waste.quantity} {waste.ingredientUnit}</div>)
                 })}
             </Fragment>)
         },
