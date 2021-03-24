@@ -8,7 +8,6 @@ import { toNumber } from '../../../support/mapping/converters';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
 import { cloneExcept } from '../../../support/random/utils';
-import { PopupFormCoordinator } from '../../../support/modal/components/PopupForm';
 
 function makeQuantityLabel(unit?: string): string {
     return unit ? `Quantity (${unit})` : 'Quantity';
@@ -268,10 +267,8 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     }
 
     touch() {
-        const coordinator: PopupFormCoordinator = this.props.attributes?.popupFormCoordinator;
-
-        if (coordinator) {
-            coordinator.setTouched();
+        if (this.props.onTouch) {
+            this.props.onTouch();
         }
     }
     

@@ -4,7 +4,6 @@ import DataForm, {DataFormControl, DataFormErrors, DataFormLayoutProvider, DataF
 import {Box} from "@material-ui/core";
 import {Observable} from "rxjs";
 import { singleton } from '../../mapping/operators';
-import { cloneWith } from '../../random/utils';
 
 export type PopupFormSubmitHandler = (data: DataFormResult) => Observable<any>;
 
@@ -19,7 +18,6 @@ export interface PopupFormCommonProps {
     onTouch?: DataFormTouchHandler;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     touched?: boolean;
-    attributes?: {[name:string]: any};
 }
 
 export interface PopupFormProps extends PopupFormCommonProps {
@@ -33,18 +31,6 @@ interface PopupFormState {
     globalError?: string;
     touched: boolean;
     failed: boolean;
-}
-
-export class PopupFormCoordinator {
-    constructor(private component: PopupForm) {
-
-    }
-
-    setTouched() {
-        this.component.setState({
-            touched: true
-        });
-    }
 }
 
 class PopupForm extends Component<PopupFormProps, PopupFormState> {
@@ -115,10 +101,7 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             errors,
             hook: this.formHook,
             onTouch: this.touch.bind(this),
-            onError: this.fail.bind(this),
-            attributes: cloneWith(this.props.attributes, {
-                popupFormCoordinator: new PopupFormCoordinator(this)
-            })
+            onError: this.fail.bind(this)
         }
 
         if (this.props.form) {
