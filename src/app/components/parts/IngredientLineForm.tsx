@@ -40,9 +40,10 @@ function ingredientsToValues(ingredients: Ingredient[]): {[name: string]: string
 }
 
 export interface IngredientLineFormProps extends DataFormCommonProps {
-    dish: Dish;
+    dish?: Dish;
     ingredients: Ingredient[];
     classes: {[name: string]: string};
+    wasteFieldName?: string;
 }
 
 interface IngredientLineFormState {
@@ -81,7 +82,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
                     return data;
                 }
 
-                return { wastes: this.extractWastes(data) }
+                return { [props.wasteFieldName || 'wastes']: this.extractWastes(data) }
             }
         }
     }
@@ -91,7 +92,9 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         let controls = this.state.controls;
 
         if (this.props.dish !== prevProps.dish) {
-            controls = this.createControlsFromDish(this.props.dish);
+            controls = this.props.dish 
+                ? this.createControlsFromDish(this.props.dish)
+                : this.createControls(uuid())
         }
 
         if (this.props.ingredients !== prevProps.ingredients) {

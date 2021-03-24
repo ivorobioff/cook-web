@@ -237,7 +237,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
                                                 return (<TableCell key={`c-${i}`}></TableCell>);
                                             }
 
-                                            return (<TableCell key={`c-${i}`}>{React.cloneElement(component)}</TableCell>);
+                                            return (<TableCell key={`c-${i}`}>{component}</TableCell>);
                                         }
 
                                         return (<TableCell

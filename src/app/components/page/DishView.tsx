@@ -1,4 +1,4 @@
-import React, { Component, Fragment, ReactElement } from "react";
+import React, { Component, Fragment } from "react";
 import { withStyles, createStyles, Theme, Box } from "@material-ui/core";
 import DataActionArea from "../../../support/data/components/DataActionArea";
 import DataPaper from "../../../support/data/components/DataPaper";
@@ -7,14 +7,13 @@ import Container from "../../../support/ioc/Container";
 import Dish, { DishToPersist } from "../../models/Dish";
 import Ingredient from "../../models/Ingredient";
 import DishService from "../../services/DishService";
-import { DataFormControl, DataFormRendererRegistry, DataFormResult } from "../../../support/form/components/DataForm";
+import DataForm, { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
 import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayExcept } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import IngredientService from "../../services/IngredientService";
 import { AiFillDelete, AiOutlineCalendar, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
 import Confirmation from "../../../support/modal/components/Confirmation";
-import IngredientLinePlugin, { ingredientLineStyles } from "../plugins/IngredientLinePlugin";
 import HistoryService from "../../services/HistoryService";
 import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
@@ -23,6 +22,8 @@ import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import ScheduleService from "../../services/ScheduleService";
 import { formatMoment } from "../../../support/mapping/converters";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
+import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
+import IngredientLineForm from "../parts/IngredientLineForm";
 
 interface DishProps {
     container: Container;
@@ -37,7 +38,6 @@ interface DishState {
         dish?: Dish,
         open: boolean;
         controls: DataFormControl[];
-        touched?: boolean;
     },
     history?: {
         dish: Dish,
@@ -55,11 +55,11 @@ interface DishState {
     },
 }
 
-const styles = (theme: Theme) => createStyles(cloneWith({
+const styles = (theme: Theme) => createStyles({
     noIngredient: {
         color: theme.palette.error.dark
     }
-}, ingredientLineStyles));
+});
 
 class DishView extends Component<DishProps, DishState> {
 
@@ -67,18 +67,6 @@ class DishView extends Component<DishProps, DishState> {
     private ingredientService: IngredientService;
     private historyService: HistoryService;
     private scheduleService: ScheduleService;
-
-    private ingredientLinePlugin = new IngredientLinePlugin(
-        () => ({
-            controls: this.state.persister?.controls || [],
-            ingredients: this.state.ingredients
-        }),
-        attributes => this.setState({
-            persister: cloneWith(this.state.persister, attributes)
-        }),
-        dish =>  this.definePersisterControls(dish),
-        this.props.classes
-    );
 
     private paged: DataViewPaged = {
         onChange: (offset, limit) => {
@@ -172,7 +160,7 @@ class DishView extends Component<DishProps, DishState> {
                     intent: 'edit',
                     open: true,
                     dish,
-                    controls: this.ingredientLinePlugin.preloadIngredientLineControls(dish)
+                    controls: this.definePersisterControls(dish)
                 }
             });
         }
@@ -211,12 +199,13 @@ class DishView extends Component<DishProps, DishState> {
         });
     }
     
-    openPersister(intent: string) {
+    openPersisterForCreate() {
         this.setState({
             persister: cloneWith(this.state.persister, {
-                intent,
+                intent: 'create',
                 open: true,
-                controls: this.ingredientLinePlugin.getControlsWithFreshIngredientLines()
+                dish: undefined,
+                controls: this.definePersisterControls()
             })
         });
     }
@@ -231,18 +220,12 @@ class DishView extends Component<DishProps, DishState> {
 
     submitPersister(data: DataFormResult) {
 
-        const payload: DishToPersist = {
-            name: data['name'],
-            notes: data['notes'],
-            requiredIngredients: this.ingredientLinePlugin.extractWastes(data)
-        };
-
         const intent = this.state.persister!.intent;
     
         if (intent === 'edit') {
             const dish = this.state.persister!.dish!;
 
-            return this.dishService.update(dish.id, payload).pipe(
+            return this.dishService.update(dish.id, data as DishToPersist).pipe(
                 tap(updated => {
                     transferTo(updated, dish);
                     this.setState({ data: cloneArray(this.state.data) });
@@ -250,7 +233,7 @@ class DishView extends Component<DishProps, DishState> {
             );
         }
 
-        return this.dishService.create(payload).pipe(
+        return this.dishService.create(data as DishToPersist).pipe(
             tap(dish => {
                 this.setState({
                     data: cloneArrayWith(this.state.data, dish)
@@ -259,13 +242,7 @@ class DishView extends Component<DishProps, DishState> {
         );
     }
 
-    validatePersister(result: DataFormResult) {
-        return this.ingredientLinePlugin.afterValidate(result, {});
-    }
-
     private definePersisterControls(dish?: Dish): DataFormControl[] {
-
-        dish = dish || this.state.persister?.dish;
 
         return [{
             type: 'text',
@@ -281,16 +258,6 @@ class DishView extends Component<DishProps, DishState> {
             value: dish?.notes,
             extra: { multiline: true }
         }];
-    }
-
-    private definePersisterLayout(renderers: DataFormRendererRegistry): ReactElement {
-        return (<Fragment>
-            { renderers['name']() }
-            <Box m={2} />
-            { renderers['notes']() }
-            <Box m={2} />
-            { this.ingredientLinePlugin.renderIngredientLines(renderers) }
-        </Fragment>);
     }
 
     closeRemoveConfirmation() {
@@ -365,16 +332,29 @@ class DishView extends Component<DishProps, DishState> {
                     paged={this.paged}
                     actions={this.actions}
                     columns={this.columns} />
-                    <DataActionArea onCreate={() => this.openPersister('create')} />
+                    <DataActionArea onCreate={() => this.openPersisterForCreate()} />
             </DataPaper>
-            {this.state.persister && (<PopupForm size="sm"
-                touched={this.state.persister!.touched }
-                layout={this.definePersisterLayout.bind(this)}
-                controls={this.state.persister!.controls}
+            {this.state.persister && (<PopupFormComposite size="sm"
+                elements={[
+                    {
+                        type: 'form',
+                        component: props => (<DataForm { ...props} controls={this.state.persister!.controls} />)
+                    },
+                    {
+                        type: 'custom',
+                        component: (<Box m={2} />)
+                    },
+                    {
+                        type: 'form',
+                        component: props => (<IngredientLineForm { ...props} 
+                            wasteFieldName="requiredIngredients"
+                            dish={this.state.persister!.dish} 
+                            ingredients={this.state.ingredients} />)
+                    }
+                ]}
                 onClose={this.closePersister.bind(this)}
                 onSubmit={this.submitPersister.bind(this)}
                 open={this.state.persister!.open}
-                onValidate={this.validatePersister.bind(this)}
                 title={`Dish - ${ucFirst(this.state.persister!.intent)}`} />) } 
 
             {this.state.remove && (<Confirmation
