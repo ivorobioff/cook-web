@@ -24,6 +24,7 @@ import { formatMoment } from "../../../support/mapping/converters";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
+import { sorting, textFilter } from "../../../support/data/components/query/controls";
 
 interface DishProps {
     container: Container;
@@ -52,7 +53,7 @@ interface DishState {
     remove?: {
         open: true,
         dish: Dish
-    },
+    }
 }
 
 const styles = (theme: Theme) => createStyles({
@@ -81,7 +82,13 @@ class DishView extends Component<DishProps, DishState> {
 
     columns: DataViewColumn[] = [
         {
-            name: 'name'
+            name: 'name',
+            query: {
+                controls: [
+                    sorting('name'),
+                    textFilter('name')
+                ]
+            }
         },
         {
             name: 'notes',
@@ -89,7 +96,12 @@ class DishView extends Component<DishProps, DishState> {
         {
             name: 'requiredIngredients',
             component: dish => (<RequiredIngredientOverview dish={dish} />)
-        }
+        },
+        {
+            name: 'lastFinishedAt',
+            title: 'Last Cook Date',
+            pipe: v => v ? moment(v).format('DD/MM/YYYY') : ' - '
+        },
     ];
 
     historyColumns: DataViewColumn[] = [
@@ -151,7 +163,7 @@ class DishView extends Component<DishProps, DishState> {
                 }
             });
         },
-        disabled: dish => !dish.withHistory
+        disabled: dish => !dish.lastFinishedAt
     },{
         icon: <AiOutlineEdit />,
         onClick: dish => {
@@ -321,6 +333,10 @@ class DishView extends Component<DishProps, DishState> {
         ];
     }
 
+    submitFilter(data: DataFormResult, column: DataViewColumn) {
+        console.log(data);
+    }
+
     render() {
         
         const { data } = this.state;
@@ -329,6 +345,7 @@ class DishView extends Component<DishProps, DishState> {
             <DataPaper>
                 <DataView
                     data={data}
+                    onFilterSubmit={this.submitFilter.bind(this)}
                     paged={this.paged}
                     actions={this.actions}
                     columns={this.columns} />
@@ -386,6 +403,7 @@ class DishView extends Component<DishProps, DishState> {
                 onSubmit={this.submitScheduler.bind(this)}
                 open={this.state.schedule!.open}
                 title="Dish - Schedule" />) }
+            
         </Fragment>);
     }
 }

@@ -16,7 +16,7 @@ export default interface Dish {
     name: string;
     notes: string;
     requiredIngredients: RequiredIngredient[];
-    withHistory?: boolean
+    lastFinishedAt?: string;
 }
 
 export interface DishToPersist {

@@ -20,6 +20,7 @@ const styles = (theme: Theme) => createStyles({
 export interface PopupProps {
     onClose: () => void;
     onOpen?: () => void;
+    onCancel?: () => boolean | void;
     onHandle?: () => Observable<boolean|undefined>,
     open: boolean;
     title: string;
@@ -103,6 +104,15 @@ class Popup extends Component<PopupProps, PopupState> {
     }
 
     cancel() {
+        
+        if (this.props.onCancel) {
+            const result = this.props.onCancel();
+
+            if (result === false) {
+                return ;
+            }
+        }
+
         this.props.onClose();
     }
 

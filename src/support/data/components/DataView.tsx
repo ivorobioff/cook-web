@@ -2,17 +2,28 @@ import React, {Component, Fragment, ReactElement, MouseEvent} from 'react';
 import { Theme, createStyles, withStyles, Table, TableHead, TableRow, TableCell, TableBody, Typography, TableContainer } from '@material-ui/core';
 import IconButton from "@material-ui/core/IconButton";
 import {
+    cloneExcept,
+    cloneWith,
     fromCamelCaseToHumanCase,
     readField, tryField, ucFirst,
     valueByPath
 } from '../../random/utils';
 import {toMoney} from "../../mapping/converters";
 import {MdArrowBack, MdArrowForward} from 'react-icons/md';
+import { DataFormControl, DataFormResult } from '../../form/components/DataForm';
+import { DataFormCompositeElement } from '../../form/components/DataFormComposite';
+import { Observable } from 'rxjs';
+import PopupForm from '../../modal/components/PopupForm';
+import PopupFormComposite from '../../modal/components/PopupFormComposite';
+import { singleton } from '../../mapping/operators';
 
 const styles = (theme: Theme) => createStyles({
     actable: {
         borderBottomStyle: 'dotted',
         borderBottomWidth: 'thin',
+        cursor: 'pointer'
+    },
+    actableColumn: {
         cursor: 'pointer'
     },
     actionCell: {
@@ -51,6 +62,12 @@ export type DataViewPipeHandler = (value: any, row: any) => any;
 export type DataViewCellTextColor = 'error' | 'success' | 'warning' | null | undefined;
 export type DataViewCellTextColorResolver = (value: any, row: any) => DataViewCellTextColor;
 export type DataViewOnClickCellHandler = (row: any, context: DataViewCellClickContext) => void;
+export type DataViewFilterSubmitHandler = (data: DataFormResult, column: DataViewColumn) => Observable<any> | void;
+
+export interface DataViewColumnQuery {
+    controls?: DataFormControl[];
+    elements?: DataFormCompositeElement[];
+}
 
 export interface DataViewColumn {
     title?: string;
@@ -61,7 +78,8 @@ export interface DataViewColumn {
     component?: (row: any) => ReactElement | null | undefined;
     color?: DataViewCellTextColorResolver;
     canClick?: (row: any) => boolean; 
-    onClick?: DataViewOnClickCellHandler
+    onClick?: DataViewOnClickCellHandler;
+    query?: DataViewColumnQuery;
 }
 
 export interface DataViewAction {
@@ -83,12 +101,18 @@ export interface DataViewProps {
     title?: string;
     paged?: DataViewPaged;
     repaging?: boolean;
+    onFilterSubmit?: DataViewFilterSubmitHandler;
 }
 
 interface DataViewState {
-    data: any[],
-    canGoForward: boolean,
-    canGoBack: boolean
+    data: any[];
+    canGoForward: boolean;
+    canGoBack: boolean;
+    filter?: {
+        open: boolean;
+        column: DataViewColumn;
+    }
+    filtered: {[name: string]: DataFormResult};
 }
 
 function canClickCell(row: any, column: DataViewColumn) {
@@ -166,7 +190,8 @@ class DataView extends Component<DataViewProps, DataViewState> {
         this.state = {
             data: [],
             canGoBack: false,
-            canGoForward: false
+            canGoForward: false,
+            filtered: {}
         }
     }
 
@@ -214,7 +239,12 @@ class DataView extends Component<DataViewProps, DataViewState> {
                         <TableHead>
                             <TableRow>
                             {columns.map((column, i) => {
-                                return (<TableCell key={`c-${i}`} align={resolveAlignment(column)}>{resolveTitle(column)}</TableCell>);
+                                return (<TableCell 
+                                    key={`c-${i}`} 
+                                    align={resolveAlignment(column)}>
+                                        <span className={this.resolveColumnClasses(column)}
+                                            onClick={e => this.clickOnColumn(e, column)}>{resolveTitle(column)}</span>
+                                        </TableCell>);
                             })}
                             {actions.map((action, i) => {
                                 return (<TableCell key={`c-${i}`}>&nbsp;</TableCell>);
@@ -282,7 +312,88 @@ class DataView extends Component<DataViewProps, DataViewState> {
                 </IconButton>
             </div>)}
 
+                { this.createFilter() }
+
             </Fragment>);
+    }
+
+    clickOnColumn(event: MouseEvent<HTMLElement>, column: DataViewColumn) {
+
+        
+
+        this.setState({
+            filter: {
+                open: true,
+                column
+            }
+        })
+    }
+
+    closeFilter() {
+        this.setState({
+            filter: cloneWith(this.state.filter, {
+                open: false
+            })
+        })        
+    }
+
+    submitFilter(data: DataFormResult) {
+
+        const column = this.state.filter!.column;
+
+        this.setState({
+            filtered: cloneWith(this.state.filtered, {
+                [column.name]: data
+            })
+        })
+        
+        if (this.props.onFilterSubmit) {
+            const result = this.props.onFilterSubmit(data, column);
+
+            if (result) {
+                return result;
+            }
+        }
+
+        return singleton(done => done(undefined));        
+    }
+
+    cancelFilter() {
+
+        const column = this.state.filter!.column;
+
+        this.setState({
+            filtered: cloneExcept(this.state.filtered, column.name)
+        })
+    }
+
+    private createFilter(): ReactElement | undefined {
+        if (!this.state.filter) {
+            return undefined;
+        }
+
+        const column = this.state.filter!.column;
+        const query = column!.query!;
+        const open = this.state.filter!.open
+
+        const props = {
+            title: `${resolveTitle(column)} - Filter`,
+            onClose: this.closeFilter.bind(this),
+            onSubmit: this.submitFilter.bind(this),
+            submitButtonTitle: 'Filter',
+            open,
+            cancelButtonTitle: 'Clear',
+            onCancel: this.closeFilter.bind(this)
+        };
+
+        if (query.controls) {
+            return (<PopupForm
+                { ...props}
+                controls={query.controls!}
+                />);
+        }
+
+        return (<PopupFormComposite { ...props} elements={query.elements!} />);
     }
 
     clickOnCell(event: MouseEvent<HTMLElement>, row: any, column: DataViewColumn) {
@@ -293,7 +404,22 @@ class DataView extends Component<DataViewProps, DataViewState> {
             });
         }
     }
+
     
+    private resolveColumnClasses(column: DataViewColumn): string {
+        const classes = [];
+
+        if (this.isColumnClickable(column)) {
+            classes.push(this.props.classes['actableColumn']);
+        }
+
+        return classes.join(' ');
+    }
+
+    private isColumnClickable(column: DataViewColumn): boolean {
+        return typeof column.query?.controls !== 'undefined' 
+            || typeof column.query?.elements !== 'undefined';
+    }
 
     changePage(page: number) {
 

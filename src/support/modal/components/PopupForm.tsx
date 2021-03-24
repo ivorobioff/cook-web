@@ -18,6 +18,9 @@ export interface PopupFormCommonProps {
     onTouch?: DataFormTouchHandler;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     touched?: boolean;
+    submitButtonTitle?: string;
+    cancelButtonTitle?: string;
+    onCancel?: () => boolean | void;
 }
 
 export interface PopupFormProps extends PopupFormCommonProps {
@@ -58,7 +61,8 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             open,
             title,
             onClose,
-            size
+            size,
+            onCancel
         } = this.props;
 
         const {
@@ -72,10 +76,12 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
                        errorHandler={false}
                        error={globalError}
                        onOpen={this.open.bind(this)}
-                       submitButtonTitle="Save"
+                       submitButtonTitle={this.props.submitButtonTitle || 'Save'}
+                       cancelButtonTitle={this.props.cancelButtonTitle}
                        submitButtonDisabled={!touched || failed}
                        open={open}
                        onClose={onClose}
+                       onCancel={onCancel}
                        onHandle={this.handle.bind(this)}>
                 {this.createForm()}
             <Box m={2} />
