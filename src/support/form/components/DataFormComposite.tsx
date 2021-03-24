@@ -29,10 +29,6 @@ interface DataFormCompositeState {
 
 class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompositeState> {
 
-    get totalForms(): number {
-        return this.props.elements.filter(e => e.type === 'form').length;
-    }
-
     constructor(props: DataFormCompositeProps) {
         super(props);
 
