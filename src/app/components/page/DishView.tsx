@@ -90,15 +90,20 @@ class DishView extends Component<DishProps, DishState> {
                 name: 'name',
                 query: {
                     controls: [
+                        sorting('name'),
                         textFilter('name')
                     ]
                 }
+            },
+            {
+                'name': 'notes',
             },
             {
                 name: 'requiredIngredients',
                 component: dish => (<RequiredIngredientOverview dish={dish} />),
                 query: {
                     controls: [
+                        sorting('ingredientIds'),
                         manyOptionsFilter('ingredientIds', ingredientsToValues(this.state.ingredients))
                     ]
                 }

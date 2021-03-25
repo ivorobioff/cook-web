@@ -1,5 +1,4 @@
 import { DataFormControl } from "../../../form/components/DataForm";
-import { isBlank } from "../../../validation/utils";
 
 export function sorting(field: string): DataFormControl {
     return {
@@ -8,7 +7,9 @@ export function sorting(field: string): DataFormControl {
         label: 'Sort',
         values: { NONE: 'None', ASC: 'Ascending', DESC: 'Descending' },
         uselessIn: 'NONE',
-        convertIn: value => value.split(':')[1],
+        convertIn: value => {
+            return value.split(':')[1];
+        },
         convertOut: value => {
             if (value === 'NONE') {
                 return undefined;

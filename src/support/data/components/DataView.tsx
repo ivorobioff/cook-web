@@ -110,7 +110,7 @@ export interface DataViewProps {
 }
 
 interface DataViewSortedState {
-    way: 'DESC' | 'ASC';
+    value: 'DESC' | 'ASC';
     column: DataViewColumn;
 }
 
@@ -350,7 +350,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
     }
 
     submitFilter(data: DataFormResult) {
-
+        
         const column = this.state.filter!.column;
 
         let sort = data['sort'];
@@ -363,7 +363,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
             sortChange = {
                 sorted: {
                     column,
-                    way: sort
+                    value: sort
                 }
             };
         } else if (column.name === this.state.sorted?.column.name) {
@@ -430,8 +430,8 @@ class DataView extends Component<DataViewProps, DataViewState> {
         filtered: {[name: string]: DataFormResult}, 
         sortChange?: { sorted?: DataViewSortedState }): Observable<any> | undefined {
         const sort = sortChange
-            ? sortChange.sorted?.way 
-            : this.state.sorted?.way;
+            ? sortChange.sorted?.value 
+            : this.state.sorted?.value;
         
 
         const filteredWithSorted: DataFormResult = {};
@@ -461,7 +461,16 @@ class DataView extends Component<DataViewProps, DataViewState> {
         }
 
         const column = this.state.filter!.column;
-        const filtered = this.state.filter!.filtered;
+        const sort = this.state.sorted?.column.name === column.name ? this.state.sorted?.value : undefined;
+        
+        let filtered = this.state.filter!.filtered;
+        
+        if (sort) {
+            filtered = cloneWith(filtered, {
+                sort
+            })
+        }
+
         const query = column!.query!;
         const open = this.state.filter!.open;
 
