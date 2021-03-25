@@ -6,7 +6,6 @@ import {
     cloneWith,
     fromCamelCaseToHumanCase,
     mergeWith,
-    objectEmpty,
     readField, tryField, ucFirst,
     valueByPath
 } from '../../random/utils';
@@ -19,6 +18,7 @@ import PopupForm from '../../modal/components/PopupForm';
 import PopupFormComposite from '../../modal/components/PopupFormComposite';
 import { singleton } from '../../mapping/operators';
 import { isBlank } from '../../validation/utils';
+import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 const styles = (theme: Theme) => createStyles({
     actable: {
@@ -232,6 +232,37 @@ class DataView extends Component<DataViewProps, DataViewState> {
         }
     }
 
+
+    private renderFilterIcon(column: DataViewColumn):ReactElement | undefined {
+        if (this.state.filtered[column.name]) {
+            return <FiFilter />;
+        }
+    }
+
+    private renderSortIcon(column: DataViewColumn): ReactElement | undefined  {
+        const sorted = this.state.sorted;
+        
+        if (!sorted) {
+            return undefined;
+        }
+
+        const sortedColumn = sorted!.column;
+
+        if (sortedColumn.name !== column.name) {
+            return undefined;
+        }
+
+        const sort = sorted!.value;
+
+        if (sort.endsWith(':ASC')) {
+            return (<FiChevronUp />)
+        }
+        
+        if (sort.endsWith(':DESC')) {
+            return (<FiChevronDown />);
+        }
+    }
+
     render() {
         const {
             columns,
@@ -256,6 +287,8 @@ class DataView extends Component<DataViewProps, DataViewState> {
                                     align={resolveAlignment(column)}>
                                         <span className={this.resolveColumnClasses(column)}
                                             onClick={e => this.clickOnColumn(e, column)}>{resolveTitle(column)}</span>
+                                            { this.renderFilterIcon(column) }
+                                            { this.renderSortIcon(column)  }
                                         </TableCell>);
                             })}
                             {actions.map((action, i) => {
