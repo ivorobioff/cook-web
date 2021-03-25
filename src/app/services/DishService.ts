@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { normalizeQuery } from "../../support/data/random/utils";
 import HttpCommunicator from "../../support/http/HttpCommunicator";
 import Container from "../../support/ioc/Container";
 import Dish, { DishToPersist } from "../models/Dish";
@@ -11,7 +12,7 @@ export default class DishService {
     }
 
     getAll(offset: number, limit: number, filter?: {[name: string]: string}): Observable<Dish[]> {
-        return this.http.get('/dishes', { offset, limit, ...filter});
+        return this.http.get('/dishes', { offset, limit, ...normalizeQuery(filter)});
     }
 
     getAllLightweight(): Observable<Dish[]> {

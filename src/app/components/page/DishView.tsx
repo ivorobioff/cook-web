@@ -75,7 +75,7 @@ class DishView extends Component<DishProps, DishState> {
 
             console.log(filter);
 
-            this.dishService.getAll(offset, limit).subscribe(data => {
+            this.dishService.getAll(offset, limit, filter).subscribe(data => {
                 this.setState({ data  });
             }, error => {
                 this.setState({ data: [] });
