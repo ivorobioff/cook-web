@@ -7,9 +7,7 @@ export function sorting(field: string): DataFormControl {
         label: 'Sort',
         values: { NONE: 'None', ASC: 'Ascending', DESC: 'Descending' },
         uselessIn: 'NONE',
-        convertIn: value => {
-            return value.split(':')[1];
-        },
+        convertIn: value => value.split(':')[1],
         convertOut: value => {
             if (value === 'NONE') {
                 return undefined;
