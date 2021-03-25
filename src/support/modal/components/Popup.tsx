@@ -28,6 +28,7 @@ export interface PopupProps {
     cancelButtonTitle?: string;
     classes: {[name: string]: string};
     submitButtonDisabled?: boolean;
+    cancelButtonDisabled?: boolean;
     errorHandler?: boolean;
     error?: string;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -56,6 +57,7 @@ class Popup extends Component<PopupProps, PopupState> {
             submitButtonTitle = 'Submit',
             cancelButtonTitle,
             submitButtonDisabled = false,
+            cancelButtonDisabled = false,
             size = 'xs'
         } = this.props;
 
@@ -63,9 +65,9 @@ class Popup extends Component<PopupProps, PopupState> {
             error
         } = this.state;
 
-        return (<Dialog open={open} onEnter={this.beforeOpen.bind(this)} onClose={this.cancel.bind(this)} fullWidth maxWidth={size}>
+        return (<Dialog open={open} onEnter={this.beforeOpen.bind(this)} onClose={this.close.bind(this)} fullWidth maxWidth={size}>
         <DialogTitle>{title}
-            <IconButton aria-label="close" onClick={this.cancel.bind(this)} className={classes.closeButton}>
+            <IconButton aria-label="close" onClick={this.close.bind(this)} className={classes.closeButton}>
                 <CloseIcon />
             </IconButton>
         </DialogTitle>
@@ -75,7 +77,7 @@ class Popup extends Component<PopupProps, PopupState> {
         </DialogContent>
         <DialogActions>
             {cancelButtonTitle &&
-                (<Button onClick={this.cancel.bind(this)} color="secondary">
+                (<Button disabled={cancelButtonDisabled}  onClick={this.cancel.bind(this)} color="secondary">
                     {cancelButtonTitle}
                 </Button>)}
             <Trigger disabled={submitButtonDisabled} onHandle={this.submit.bind(this)} color="primary">
@@ -113,6 +115,11 @@ class Popup extends Component<PopupProps, PopupState> {
             }
         }
 
+        this.props.onClose();
+    }
+
+
+    close() {
         this.props.onClose();
     }
 

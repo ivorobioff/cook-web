@@ -111,6 +111,7 @@ interface DataViewState {
     filter?: {
         open: boolean;
         column: DataViewColumn;
+        filtered?: DataFormResult;
     }
     filtered: {[name: string]: DataFormResult};
 }
@@ -319,12 +320,11 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
     clickOnColumn(event: MouseEvent<HTMLElement>, column: DataViewColumn) {
 
-        
-
         this.setState({
             filter: {
                 open: true,
-                column
+                column,
+                filtered: this.state.filtered[column.name]
             }
         })
     }
@@ -346,7 +346,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
                 [column.name]: data
             })
         })
-        
+
         if (this.props.onFilterSubmit) {
             const result = this.props.onFilterSubmit(data, column);
 
@@ -364,7 +364,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
         this.setState({
             filtered: cloneExcept(this.state.filtered, column.name)
-        })
+        });
     }
 
     private createFilter(): ReactElement | undefined {
@@ -373,8 +373,9 @@ class DataView extends Component<DataViewProps, DataViewState> {
         }
 
         const column = this.state.filter!.column;
+        const filtered = this.state.filter!.filtered;
         const query = column!.query!;
-        const open = this.state.filter!.open
+        const open = this.state.filter!.open;
 
         const props = {
             title: `${resolveTitle(column)} - Filter`,
@@ -383,7 +384,9 @@ class DataView extends Component<DataViewProps, DataViewState> {
             submitButtonTitle: 'Filter',
             open,
             cancelButtonTitle: 'Clear',
-            onCancel: this.closeFilter.bind(this)
+            onCancel: this.cancelFilter.bind(this),
+            value: filtered,
+            cancelButtonDisabled: !filtered
         };
 
         if (query.controls) {

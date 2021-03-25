@@ -21,6 +21,8 @@ export interface PopupFormCommonProps {
     submitButtonTitle?: string;
     cancelButtonTitle?: string;
     onCancel?: () => boolean | void;
+    value?: DataFormResult;
+    cancelButtonDisabled?: boolean;
 }
 
 export interface PopupFormProps extends PopupFormCommonProps {
@@ -62,7 +64,8 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
             title,
             onClose,
             size,
-            onCancel
+            onCancel,
+            cancelButtonDisabled
         } = this.props;
 
         const {
@@ -82,6 +85,7 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
                        open={open}
                        onClose={onClose}
                        onCancel={onCancel}
+                       cancelButtonDisabled={cancelButtonDisabled}
                        onHandle={this.handle.bind(this)}>
                 {this.createForm()}
             <Box m={2} />
@@ -92,7 +96,8 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
         const {
             controls,
             fresh,
-            layout
+            layout,
+            value
         } = this.props;
 
         const {
@@ -101,6 +106,7 @@ class PopupForm extends Component<PopupFormProps, PopupFormState> {
 
         const props = {
             controls,
+            value,
             layout,
             fresh,
             onValidate: this.props.onValidate,

@@ -57,6 +57,7 @@ export interface DataFormCommonProps {
     onValidate?: DataFormValidateHandler;
     autoComplete?: 'on'|'off';
     fresh?: boolean;
+    value?: DataFormResult;
 }
 
 export interface DataFormProps extends DataFormCommonProps {
@@ -70,6 +71,7 @@ type DataFormInputs = {[field: string]: DataFormInput}
 
 interface DataFormState {
     inputs: DataFormInputs;
+    controls: DataFormControl[];
 }
 
 export type DataFormControlRenderer = (
@@ -416,6 +418,12 @@ function lostControlNames(controls: DataFormControl[], inputs: DataFormInputs): 
     return lostKeys;
 }
 
+function cloneControlsWithFormValues(controls: DataFormControl[], formValues: DataFormResult) {
+    return controls.map(control => cloneWith(control, {
+        value: formValues[control.name]
+    }));
+}
+
 class DataForm extends Component<DataFormProps, DataFormState> {
 
     private renderers: {[name: string]: DataFormControlRenderer} = {
@@ -427,13 +435,20 @@ class DataForm extends Component<DataFormProps, DataFormState> {
         'date': renderDate
     };
 
-    private scheduledTasks: (() => void)[] = [];
+    private scheduledTasks: ((controls: DataFormControl[]) => void)[] = [];
 
     constructor(props: DataFormProps) {
         super(props);
 
+        let controls = props.controls;
+
+        if (typeof props.value !== 'undefined') {
+            controls = cloneControlsWithFormValues(controls, props.value!);
+        }
+
         this.state = {
-            inputs: {}
+            inputs: {},
+            controls
         };
 
         if (this.props.onReady) {
@@ -446,15 +461,15 @@ class DataForm extends Component<DataFormProps, DataFormState> {
     }
     
     prepareResult() {
-        let errors = validateAll(this.props.controls, this.state.inputs);
+        let errors = validateAll(this.state.controls, this.state.inputs);
 
         let result = null;
 
         if (objectEmpty(errors)) {
-            result = createResult(this.props.controls, this.state.inputs);
+            result = createResult(this.state.controls, this.state.inputs);
 
             if (this.props.onValidate) {
-                errors = cloneExcept(this.props.onValidate(result), ...disabledControlNames(this.props.controls));
+                errors = cloneExcept(this.props.onValidate(result), ...disabledControlNames(this.state.controls));
             }
         }
 
@@ -477,16 +492,31 @@ class DataForm extends Component<DataFormProps, DataFormState> {
 
     componentDidUpdate(prevProps: DataFormProps) {
 
+        const oldControls = this.state.controls;
+        let newControls = oldControls;
+
+        if (this.props.controls !== prevProps.controls) {
+            newControls = this.props.controls;
+        }
+
+        if (this.props.value !== prevProps.value) {
+            if (typeof this.props.value === 'undefined') {
+                newControls = this.props.controls;
+            } else {
+                newControls = cloneControlsWithFormValues(newControls, this.props.value!);
+            }
+        }
+
         // assigned external errors
         if (this.props.errors !== prevProps.errors) {
 
-            let disabledControls = disabledControlNames(this.props.controls);
-            let lostControls = lostControlNames(this.props.controls, this.state.inputs);
+            let disabledControls = disabledControlNames(newControls);
+            let lostControls = lostControlNames(newControls, this.state.inputs);
 
             let errors: DataFormErrors = {};
             let possibleErrors = this.props.errors || {}
     
-            this.props.controls.forEach(control => {
+            newControls.forEach(control => {
                 if (possibleErrors[control.name] && !disabledControls.includes(control.name)) {
                     errors[control.name] = possibleErrors[control.name];
                 }
@@ -500,15 +530,19 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             }
 
             if (this.props.onError) {
-                this.props.onError(hasError(inputs, this.props.controls));
+                this.props.onError(hasError(inputs, newControls));
             }
         }
 
         // remove inputs for disabled and inexistent controls
-        if (this.props.controls !== prevProps.controls) {
+        if (oldControls !== newControls) {
 
-            let disabledControls = disabledControlNames(this.props.controls);
-            let lostControls = lostControlNames(this.props.controls, this.state.inputs);
+            this.setState({
+                controls: newControls
+            });
+
+            let disabledControls = disabledControlNames(newControls);
+            let lostControls = lostControlNames(newControls, this.state.inputs);
 
             const inputs = cloneExcept(this.state.inputs, ...disabledControls, ...lostControls);
 
@@ -518,12 +552,12 @@ class DataForm extends Component<DataFormProps, DataFormState> {
 
             // in case if some inputs with errors are gone
             if (this.props.onError) {
-                this.props.onError(hasError(inputs, this.props.controls));
+                this.props.onError(hasError(inputs, newControls));
             }
         }
 
         // run scheduled tasks
-        this.scheduledTasks.forEach(task => task());
+        this.scheduledTasks.forEach(task => task(newControls));
 
         this.scheduledTasks = [];
 
@@ -537,12 +571,15 @@ class DataForm extends Component<DataFormProps, DataFormState> {
 
     render() {
         const {
-            controls,
             className,
             autoComplete,
             children,
             unwrap
         } = this.props;
+
+        const { 
+            controls
+        } = this.state;
 
         let layout = this.props.layout;
 
@@ -602,15 +639,15 @@ class DataForm extends Component<DataFormProps, DataFormState> {
                     this.props.onTouch();
                 }
 
-                this.scheduledTasks.push(() => {
+                this.scheduledTasks.push(newControls => {
                     if (this.props.onError) {
 
-                        let lostControls = lostControlNames(this.props.controls, this.state.inputs);
+                        let lostControls = lostControlNames(newControls, this.state.inputs);
 
                         let inputs = cloneExcept(this.state.inputs, ...lostControls);
 
                         // we need to check errors after controls up to date
-                        this.props.onError(hasError(inputs, this.props.controls));
+                        this.props.onError(hasError(inputs, newControls));
                     }
                 });
             },

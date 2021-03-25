@@ -6,7 +6,8 @@ export function sorting(field: string): DataFormControl {
         name: 'sort',
         label: 'Direction',
         values: { NONE: 'None', ASC: 'Ascending', DESC: 'Descending' },
-        value: 'NONE',
+        uselessIn: 'NONE',
+        convertIn: value => value.split(':')[1],
         convertOut: value => {
             if (value === 'NONE') {
                 return undefined;
@@ -17,7 +18,7 @@ export function sorting(field: string): DataFormControl {
     }
 }
 
-export function textFilter(field: string): DataFormControl {
+export function containsFilter(field: string): DataFormControl {
     return {
         type: 'text',
         name: field,

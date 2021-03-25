@@ -24,7 +24,7 @@ import { formatMoment } from "../../../support/mapping/converters";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
-import { sorting, textFilter } from "../../../support/data/components/query/controls";
+import { sorting, containsFilter } from "../../../support/data/components/query/controls";
 
 interface DishProps {
     container: Container;
@@ -86,7 +86,7 @@ class DishView extends Component<DishProps, DishState> {
             query: {
                 controls: [
                     sorting('name'),
-                    textFilter('name')
+                    containsFilter('name')
                 ]
             }
         },
@@ -334,7 +334,7 @@ class DishView extends Component<DishProps, DishState> {
     }
 
     submitFilter(data: DataFormResult, column: DataViewColumn) {
-        console.log(data);
+        
     }
 
     render() {
