@@ -115,7 +115,7 @@ function createResult(controls: DataFormControl[], inputs: DataFormInputs): Data
             let input = inputs[control.name];
 
             if (typeof input === 'undefined') {
-                result[control.name] = convertOut(control,  { value: control.value });
+                result[control.name] = convertOut(control,  { value: convertIn(control, control.value) });
             } else {
                 result[control.name] = convertOut(control, input);
             }
