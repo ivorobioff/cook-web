@@ -24,7 +24,8 @@ import { formatMoment } from "../../../support/mapping/converters";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
-import { sorting, containsFilter } from "../../../support/data/components/query/controls";
+import { manyOptionsFilter, sorting, textFilter } from "../../../support/data/components/query/controls";
+import { ingredientsToValues } from "../../random/utils";
 
 interface DishProps {
     container: Container;
@@ -70,7 +71,10 @@ class DishView extends Component<DishProps, DishState> {
     private scheduleService: ScheduleService;
 
     private paged: DataViewPaged = {
-        onChange: (offset, limit) => {
+        onChange: (offset, limit, filter?: DataFormResult) => {
+
+            console.log(filter);
+
             this.dishService.getAll(offset, limit).subscribe(data => {
                 this.setState({ data  });
             }, error => {
@@ -80,29 +84,32 @@ class DishView extends Component<DishProps, DishState> {
         }
     };
 
-    columns: DataViewColumn[] = [
-        {
-            name: 'name',
-            query: {
-                controls: [
-                    sorting('name'),
-                    containsFilter('name')
-                ]
-            }
-        },
-        {
-            name: 'notes',
-        },
-        {
-            name: 'requiredIngredients',
-            component: dish => (<RequiredIngredientOverview dish={dish} />)
-        },
-        {
-            name: 'lastFinishedAt',
-            title: 'Last Cook Date',
-            pipe: v => v ? moment(v).format('DD/MM/YYYY') : ' - '
-        },
-    ];
+    get columns(): DataViewColumn[] {
+        return [
+            {
+                name: 'name',
+                query: {
+                    controls: [
+                        textFilter('name')
+                    ]
+                }
+            },
+            {
+                name: 'requiredIngredients',
+                component: dish => (<RequiredIngredientOverview dish={dish} />),
+                query: {
+                    controls: [
+                        manyOptionsFilter('ingredientIds', ingredientsToValues(this.state.ingredients))
+                    ]
+                }
+            },
+            {
+                name: 'lastFinishedAt',
+                title: 'Last Cook Date',
+                pipe: v => v ? moment(v).format('DD/MM/YYYY') : ' - '
+            },
+        ];
+    }
 
     historyColumns: DataViewColumn[] = [
         {
@@ -333,10 +340,6 @@ class DishView extends Component<DishProps, DishState> {
         ];
     }
 
-    submitFilter(data: DataFormResult, column: DataViewColumn) {
-        
-    }
-
     render() {
         
         const { data } = this.state;
@@ -345,7 +348,6 @@ class DishView extends Component<DishProps, DishState> {
             <DataPaper>
                 <DataView
                     data={data}
-                    onFilterSubmit={this.submitFilter.bind(this)}
                     paged={this.paged}
                     actions={this.actions}
                     columns={this.columns} />

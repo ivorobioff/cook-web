@@ -5,6 +5,8 @@ import {
     cloneExcept,
     cloneWith,
     fromCamelCaseToHumanCase,
+    mergeWith,
+    objectEmpty,
     readField, tryField, ucFirst,
     valueByPath
 } from '../../random/utils';
@@ -16,6 +18,7 @@ import { Observable } from 'rxjs';
 import PopupForm from '../../modal/components/PopupForm';
 import PopupFormComposite from '../../modal/components/PopupFormComposite';
 import { singleton } from '../../mapping/operators';
+import { isBlank } from '../../validation/utils';
 
 const styles = (theme: Theme) => createStyles({
     actable: {
@@ -24,6 +27,8 @@ const styles = (theme: Theme) => createStyles({
         cursor: 'pointer'
     },
     actableColumn: {
+        borderBottomStyle: 'dotted',
+        borderBottomWidth: 'thin',
         cursor: 'pointer'
     },
     actionCell: {
@@ -90,7 +95,7 @@ export interface DataViewAction {
 
 export interface DataViewPaged {
     limit?: number;
-    onChange: (offset: number, limit: number) => void;
+    onChange: (offset: number, limit: number, filter?: DataFormResult) => void;
 }
 
 export interface DataViewProps {
@@ -104,6 +109,11 @@ export interface DataViewProps {
     onFilterSubmit?: DataViewFilterSubmitHandler;
 }
 
+interface DataViewSortedState {
+    way: 'DESC' | 'ASC';
+    column: DataViewColumn;
+}
+
 interface DataViewState {
     data: any[];
     canGoForward: boolean;
@@ -114,6 +124,7 @@ interface DataViewState {
         filtered?: DataFormResult;
     }
     filtered: {[name: string]: DataFormResult};
+    sorted?: DataViewSortedState;
 }
 
 function canClickCell(row: any, column: DataViewColumn) {
@@ -319,14 +330,15 @@ class DataView extends Component<DataViewProps, DataViewState> {
     }
 
     clickOnColumn(event: MouseEvent<HTMLElement>, column: DataViewColumn) {
-
-        this.setState({
-            filter: {
-                open: true,
-                column,
-                filtered: this.state.filtered[column.name]
-            }
-        })
+        if (column.query ){
+            this.setState({
+                filter: {
+                    open: true,
+                    column,
+                    filtered: this.state.filtered[column.name]
+                }
+            })
+        }
     }
 
     closeFilter() {
@@ -341,18 +353,50 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
         const column = this.state.filter!.column;
 
-        this.setState({
-            filtered: cloneWith(this.state.filtered, {
-                [column.name]: data
-            })
-        })
+        let sort = data['sort'];
 
-        if (this.props.onFilterSubmit) {
-            const result = this.props.onFilterSubmit(data, column);
+        data['sort'] = undefined;
 
-            if (result) {
-                return result;
+        let sortChange;
+
+        if (sort) {
+            sortChange = {
+                sorted: {
+                    column,
+                    way: sort
+                }
+            };
+        } else if (column.name === this.state.sorted?.column.name) {
+            sortChange = {
+                sorted: undefined
             }
+        }
+
+        if (sortChange) {
+            this.setState(sortChange);
+        }
+
+        let filtered = this.state.filtered;
+
+        const hasData = Object.keys(data)
+            .filter(key => !isBlank(data[key])).length > 0;
+        
+        if (hasData) {
+            filtered = cloneWith(filtered, {
+                [column.name]: data
+            }); 
+        } else if (filtered[column.name]) {
+            filtered = cloneExcept(filtered, column.name);
+        }
+
+        if (filtered !== this.state.filtered) {
+            this.setState({ filtered });
+        }
+        
+        const result = this.forwardFiltering(column, filtered, sortChange);
+
+        if (result) {
+            return result;
         }
 
         return singleton(done => done(undefined));        
@@ -362,9 +406,53 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
         const column = this.state.filter!.column;
 
-        this.setState({
-            filtered: cloneExcept(this.state.filtered, column.name)
+        let sortChange;
+
+        if (column.name === this.state.sorted?.column.name) {
+            sortChange = {
+                sorted: undefined
+            };
+        }
+
+        if (sortChange) {
+            this.setState(sortChange);
+        }
+
+        const filtered = cloneExcept(this.state.filtered, column.name);
+
+        this.setState({ filtered });
+
+        this.forwardFiltering(column, filtered, sortChange);
+    }
+
+    private forwardFiltering(
+        column: DataViewColumn, 
+        filtered: {[name: string]: DataFormResult}, 
+        sortChange?: { sorted?: DataViewSortedState }): Observable<any> | undefined {
+        const sort = sortChange
+            ? sortChange.sorted?.way 
+            : this.state.sorted?.way;
+        
+
+        const filteredWithSorted: DataFormResult = {};
+
+        Object.keys(filtered).forEach(name => {
+            mergeWith(filteredWithSorted, filtered[name]);
         });
+
+        if (sort) {
+            filteredWithSorted['sort'] = sort;
+        }
+
+        if (this.isPaged()) {
+            this.changePage(1, filteredWithSorted);
+        } else if (this.props.onFilterSubmit) {
+            const result = this.props.onFilterSubmit(filteredWithSorted, column);
+
+            if (result) {
+                return result;
+            }
+        }
     }
 
     private createFilter(): ReactElement | undefined {
@@ -424,7 +512,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
             || typeof column.query?.elements !== 'undefined';
     }
 
-    changePage(page: number) {
+    changePage(page: number, filter?: DataFormResult) {
 
         let paged = readField<DataViewPaged>(this.props, 'paged');
 
@@ -439,7 +527,7 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
         let offset = ((page * limit) - limit) - (page - 1);
 
-        paged.onChange(offset, limit);
+        paged.onChange(offset, limit, filter);
     }
 
     move(forward: boolean) {

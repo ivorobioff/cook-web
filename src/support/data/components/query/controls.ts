@@ -1,10 +1,11 @@
 import { DataFormControl } from "../../../form/components/DataForm";
+import { isBlank } from "../../../validation/utils";
 
 export function sorting(field: string): DataFormControl {
     return {
         type: 'select',
         name: 'sort',
-        label: 'Direction',
+        label: 'Sort',
         values: { NONE: 'None', ASC: 'Ascending', DESC: 'Descending' },
         uselessIn: 'NONE',
         convertIn: value => value.split(':')[1],
@@ -18,10 +19,22 @@ export function sorting(field: string): DataFormControl {
     }
 }
 
-export function containsFilter(field: string): DataFormControl {
+export function textFilter(field: string): DataFormControl {
     return {
         type: 'text',
         name: field,
-        label: 'Contains'
+        label: 'Value'
+    }
+}
+
+export function manyOptionsFilter(field: string, values: {[name: string]: string}): DataFormControl {
+    return {
+        type: 'autocomplete',
+        name: field,
+        values,
+        label: 'Options',
+        extra: {
+            multiple: true
+        }
     }
 }

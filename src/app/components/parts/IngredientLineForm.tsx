@@ -8,6 +8,7 @@ import { toNumber } from '../../../support/mapping/converters';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
 import { cloneExcept } from '../../../support/random/utils';
+import { ingredientsToValues } from '../../random/utils';
 
 function makeQuantityLabel(unit?: string): string {
     return unit ? `Quantity (${unit})` : 'Quantity';
@@ -19,24 +20,6 @@ function makeQuantityName(lineId: string) {
 
 function makeIngredientName(lineId: string) {
     return 'ingredient_' + lineId;
-}
-
-let _ingredients: Ingredient[] = [];
-let _ingredientValues: {[name: string]: string}  = {};
-
-function ingredientsToValues(ingredients: Ingredient[]): {[name: string]: string} {
-
-    if (_ingredients === ingredients) {
-        return _ingredientValues;
-    }
-
-    _ingredients = ingredients;
-
-    _ingredientValues = {};
-    
-    ingredients.forEach(ingredient => _ingredientValues[ingredient.id] = ingredient.name);
-
-    return _ingredientValues;
 }
 
 export interface IngredientLineFormProps extends DataFormCommonProps {
