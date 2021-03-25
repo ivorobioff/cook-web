@@ -1,5 +1,5 @@
 import React, {Component, Fragment, ReactElement, MouseEvent} from 'react';
-import { Theme, createStyles, withStyles, Table, TableHead, TableRow, TableCell, TableBody, Typography, TableContainer } from '@material-ui/core';
+import { Theme, createStyles, withStyles, Table, TableHead, TableRow, TableCell, TableBody, Typography, TableContainer, CircularProgress } from '@material-ui/core';
 import IconButton from "@material-ui/core/IconButton";
 import {
     cloneExcept,
@@ -95,7 +95,7 @@ export interface DataViewAction {
 
 export interface DataViewPaged {
     limit?: number;
-    onChange: (offset: number, limit: number, filter?: DataFormResult) => void;
+    onChange: (offset: number, limit: number, filter?: DataFormResult) => Observable<any> | void;
 }
 
 export interface DataViewProps {
@@ -125,6 +125,7 @@ interface DataViewState {
     }
     filtered: {[name: string]: DataFormResult};
     sorted?: DataViewSortedState;
+    loading: boolean;
 }
 
 function canClickCell(row: any, column: DataViewColumn) {
@@ -203,7 +204,8 @@ class DataView extends Component<DataViewProps, DataViewState> {
             data: [],
             canGoBack: false,
             canGoForward: false,
-            filtered: {}
+            filtered: {},
+            loading: false
         }
     }
 
@@ -347,14 +349,21 @@ class DataView extends Component<DataViewProps, DataViewState> {
                         </TableBody>
                     </Table>
                     </TableContainer>
-            {this.isPaged() && (<div className={classes.paged}>
-                <IconButton disabled={!this.state.canGoBack} onClick={() => this.move(false)}>
-                    <MdArrowBack size={20} />
-                </IconButton>
 
-                <IconButton disabled={!this.state.canGoForward} onClick={() => this.move(true)}>
-                    <MdArrowForward size={20} />
-                </IconButton>
+            {this.isPaged() && (<div className={classes.paged}>
+                { this.state.loading && (<Fragment>
+                    <CircularProgress color="secondary" />
+                </Fragment>)}
+
+                { !this.state.loading && (<Fragment>
+                    <IconButton disabled={!this.state.canGoBack} onClick={() => this.move(false)}>
+                        <MdArrowBack size={20} />
+                    </IconButton>
+
+                    <IconButton disabled={!this.state.canGoForward} onClick={() => this.move(true)}>
+                        <MdArrowForward size={20} />
+                    </IconButton>
+                </Fragment>)}
             </div>)}
 
                 { this.createFilter() }
@@ -569,7 +578,23 @@ class DataView extends Component<DataViewProps, DataViewState> {
 
         let offset = ((page * limit) - limit) - (page - 1);
 
-        paged.onChange(offset, limit, filter);
+        const result = paged.onChange(offset, limit, filter);
+
+        if (result) {
+            
+            this.setState({
+                loading: true
+            });
+
+            result.subscribe({
+                error: e => console.error(e),
+                complete: () => {
+                    this.setState({
+                        loading: false
+                    });
+                }
+            });
+        }
     }
 
     move(forward: boolean) {

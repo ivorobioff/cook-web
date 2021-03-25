@@ -72,15 +72,16 @@ class DishView extends Component<DishProps, DishState> {
 
     private paged: DataViewPaged = {
         onChange: (offset, limit, filter?: DataFormResult) => {
-
-            console.log(filter);
-
-            this.dishService.getAll(offset, limit, filter).subscribe(data => {
-                this.setState({ data  });
-            }, error => {
-                this.setState({ data: [] });
-                console.error(error);
-            });
+            return this.dishService.getAll(offset, limit, filter).pipe(
+                tap({
+                    next: data => {
+                        this.setState({ data  });
+                    },
+                    error: () => {
+                        this.setState({ data: [] });
+                    }
+                })
+            );
         }
     };
 
@@ -90,7 +91,6 @@ class DishView extends Component<DishProps, DishState> {
                 name: 'name',
                 query: {
                     controls: [
-                        sorting('name'),
                         textFilter('name')
                     ]
                 }
@@ -103,7 +103,6 @@ class DishView extends Component<DishProps, DishState> {
                 component: dish => (<RequiredIngredientOverview dish={dish} />),
                 query: {
                     controls: [
-                        sorting('ingredientIds'),
                         manyOptionsFilter('ingredientIds', ingredientsToValues(this.state.ingredients))
                     ]
                 }
