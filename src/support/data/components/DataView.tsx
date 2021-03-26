@@ -19,6 +19,7 @@ import PopupFormComposite from '../../modal/components/PopupFormComposite';
 import { singleton } from '../../mapping/operators';
 import { isBlank } from '../../validation/utils';
 import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { Alert } from '@material-ui/lab';
 
 const styles = (theme: Theme) => createStyles({
     actable: {
@@ -48,6 +49,9 @@ const styles = (theme: Theme) => createStyles({
     paged: {
         display: 'flex',
         justifyContent: 'center',
+        marginTop: theme.spacing(1),
+    },
+    loadingFailed: {
         marginTop: theme.spacing(1),
     }
 });
@@ -126,6 +130,7 @@ interface DataViewState {
     filtered: {[name: string]: DataFormResult};
     sorted?: DataViewSortedState;
     loading: boolean;
+    loadingError?: string;
 }
 
 function canClickCell(row: any, column: DataViewColumn) {
@@ -349,6 +354,9 @@ class DataView extends Component<DataViewProps, DataViewState> {
                         </TableBody>
                     </Table>
                     </TableContainer>
+
+                    { this.state.loadingError && (<Alert className={this.props.classes.loadingFailed} severity="error">{this.state.loadingError}</Alert>) }
+
 
             {this.isPaged() && (<div className={classes.paged}>
                 { this.state.loading && (<Fragment>
@@ -583,11 +591,18 @@ class DataView extends Component<DataViewProps, DataViewState> {
         if (result) {
             
             this.setState({
-                loading: true
+                loading: true,
+                loadingError: undefined
             });
 
             result.subscribe({
-                error: e => console.error(e),
+                error: e => {
+                    console.error(e);
+                    this.setState({
+                        loading: false,
+                        loadingError: 'Failed to load the data. Please try again!'
+                    })
+                },
                 complete: () => {
                     this.setState({
                         loading: false
