@@ -214,23 +214,20 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         }));
     }
     
-    createLayout(renderers: DataFormRendererRegistry): ReactElement {
+    createLayout(registry: DataFormRendererRegistry): ReactElement {
         const ingredientLineIds = this.state.controls
             .filter(control => control.name.startsWith('ingredient_'))
             .map(control => control.name.split('_')[1]);
-            
-        const onlyAvailableRenderers = (lineId: string) => 
-            !!(renderers['ingredient_' + lineId] && renderers['quantity_' + lineId]);
 
         return (<Fragment>
-            {ingredientLineIds.filter(onlyAvailableRenderers)
+            {ingredientLineIds
                 .map((lineId, i) => {
                     return (<Grid key={i} container spacing={1}>
                         <Grid item md={7}>
-                            { renderers['ingredient_' + lineId]() }
+                            { registry.render('ingredient_' + lineId) }
                         </Grid>
                         <Grid item md={4}>
-                            { renderers['quantity_' + lineId]() }
+                            { registry.render('quantity_' + lineId) }
 
                         </Grid>
                         <Grid item md={1} style={{textAlign: "center"}}>

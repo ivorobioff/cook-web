@@ -17,8 +17,23 @@ export type DataFormConverter= (value: any) => any;
 export type DataFormTouchHandler = () => void;
 export type DataFormErrorHandler = (valid: boolean) => void;
 export type DataFormValidateHandler = (result: DataFormResult) => DataFormErrors;
-export type DataFormRendererRegistry = {[name: string]: () => ReactElement};
-export type DataFormLayoutProvider = (renderers: DataFormRendererRegistry) => ReactElement;
+export type DataFormLayoutProvider = (registry: DataFormRendererRegistry) => ReactElement;
+
+export class DataFormRendererRegistry {
+
+    constructor(private renderers: {[name: string]: () => ReactElement}) {
+
+    }
+
+    render(name: string): ReactElement {
+
+        if (!this.renderers[name]) {
+            return (<Fragment></Fragment>)
+        }
+        
+        return this.renderers[name]();
+    }
+}
 
 export class DataFormHook {
     provider?:  DataFormResultProvider;
@@ -584,11 +599,11 @@ class DataForm extends Component<DataFormProps, DataFormState> {
         let layout = this.props.layout;
 
         if (!layout) {
-            layout = renderers => {
+            layout = registry => {
                 return (<Fragment>
                     {controls.map((control, i) => {
                         return (<Fragment key={i}>
-                            { renderers[control.name]() }
+                            { registry.render(control.name) }
                             { i < controls.length - 1 ? ( <Box m={2} />) : '' }
                         </Fragment>);
                     })}
@@ -605,15 +620,17 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             }
         });
 
+        const registry = new DataFormRendererRegistry(renderers);
+
         if (unwrap) {
             return (<Fragment>
-                {layout(renderers)}
+                {layout(registry)}
                 {children}
             </Fragment>)
         }
         
         return (<form noValidate autoComplete={autoComplete} className={className}>
-            {layout(renderers)}
+            {layout(registry)}
             {children}
         </form>);
     }
