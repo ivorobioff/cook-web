@@ -174,7 +174,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
             name: 'scheduledOn',
             required: true,
             validate: checkAll(checkMoment('DD/MM/YYYY'), checkPresentOrFuture('DD/MM/YYYY')),
-            convertOut: formatMoment('YYYY-MM-DDT00:00:00'),
+            convertOut: formatMoment('YYYY-MM-DD'),
             extra: {
                 constraint: 'only-future'
             }

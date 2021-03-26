@@ -110,7 +110,12 @@ class DishView extends Component<DishProps, DishState> {
             {
                 name: 'lastFinishedAt',
                 title: 'Last Cook Date',
-                pipe: v => v ? moment(v).format('DD/MM/YYYY') : ' - '
+                pipe: v => v ? moment(v).format('DD/MM/YYYY') : ' - ',
+                query: {
+                    controls: [
+                        sorting('lastFinishedAt')
+                    ]
+                }
             },
         ];
     }
@@ -336,7 +341,7 @@ class DishView extends Component<DishProps, DishState> {
                 required: true,
                 value: null,
                 validate: checkAll(checkMoment('DD/MM/YYYY'), checkPresentOrFuture('DD/MM/YYYY')),
-                convertOut: formatMoment('YYYY-MM-DDT00:00:00'),
+                convertOut: formatMoment('YYYY-MM-DD'),
                 extra: {
                     constraint: 'only-future'
                 }

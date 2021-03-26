@@ -219,36 +219,40 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             .filter(control => control.name.startsWith('ingredient_'))
             .map(control => control.name.split('_')[1]);
             
-        return (<Fragment>
-            {ingredientLineIds.map((lineId, i) => {
-            return (<Grid key={i} container spacing={1}>
-                <Grid item md={7}>
-                    { renderers['ingredient_' + lineId]() }
-                </Grid>
-                <Grid item md={4}>
-                    { renderers['quantity_' + lineId]() }
+        const onlyAvailableRenderers = (lineId: string) => 
+            !!(renderers['ingredient_' + lineId] && renderers['quantity_' + lineId]);
 
-                </Grid>
-                <Grid item md={1} style={{textAlign: "center"}}>
-                    { ingredientLineIds.length > 1 && (<Box display="block" mt={1}>
-                        <IconButton onClick={this.removeIngredientLineControls.bind(this, lineId)} 
-                                className={this.props.classes.lineButton } >
-                            <GrFormClose className={this.props.classes.lineButtonIcon } />
-                        </IconButton>
-                    </Box>)}
-                    
-                    { i === 0 && (<Box mb={4} />)}
-                    
-                    { i === (ingredientLineIds.length - 1) && (<Box display="block">
-                        <IconButton onClick={this.addIngredientLineControls.bind(this)} 
-                                className={this.props.classes.lineButton } >
-                            <GrFormAdd className={this.props.classes.lineButtonIcon } color="#757575" />
-                        </IconButton>
-                    </Box>) }
-                    
-                </Grid>
-            </Grid>)
-        })}
+        return (<Fragment>
+            {ingredientLineIds.filter(onlyAvailableRenderers)
+                .map((lineId, i) => {
+                    return (<Grid key={i} container spacing={1}>
+                        <Grid item md={7}>
+                            { renderers['ingredient_' + lineId]() }
+                        </Grid>
+                        <Grid item md={4}>
+                            { renderers['quantity_' + lineId]() }
+
+                        </Grid>
+                        <Grid item md={1} style={{textAlign: "center"}}>
+                            { ingredientLineIds.length > 1 && (<Box display="block" mt={1}>
+                                <IconButton onClick={this.removeIngredientLineControls.bind(this, lineId)} 
+                                        className={this.props.classes.lineButton } >
+                                    <GrFormClose className={this.props.classes.lineButtonIcon } />
+                                </IconButton>
+                            </Box>)}
+                            
+                            { i === 0 && (<Box mb={4} />)}
+                            
+                            { i === (ingredientLineIds.length - 1) && (<Box display="block">
+                                <IconButton onClick={this.addIngredientLineControls.bind(this)} 
+                                        className={this.props.classes.lineButton } >
+                                    <GrFormAdd className={this.props.classes.lineButtonIcon } color="#757575" />
+                                </IconButton>
+                            </Box>) }
+                            
+                        </Grid>
+                    </Grid>)
+                })}
         </Fragment>);
     }
 
