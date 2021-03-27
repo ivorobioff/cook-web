@@ -1,4 +1,4 @@
-import React, {Component, ReactElement, Fragment} from 'react';
+import React, {Component, ReactElement, Fragment, FormEvent} from 'react';
 import {Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, FormLabel, RadioGroup, Radio} from "@material-ui/core";
 import {clone, cloneExcept, cloneWith, hasField, objectEmpty, readField, tryField} from "../../random/utils";
 import {isBlank} from "../../validation/utils";
@@ -629,10 +629,14 @@ class DataForm extends Component<DataFormProps, DataFormState> {
             </Fragment>)
         }
         
-        return (<form noValidate autoComplete={autoComplete} className={className}>
+        return (<form noValidate onSubmit={this.defaultFormSubmit.bind(this)} autoComplete={autoComplete} className={className}>
             {layout(registry)}
             {children}
         </form>);
+    }
+    
+    defaultFormSubmit(e: FormEvent) {
+        e.preventDefault();
     }
     
     private createRenderContext(control: DataFormControl): DataFormRenderContext {
