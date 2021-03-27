@@ -252,6 +252,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
         return (<Fragment>
             <DataPaper>
                 <DataView
+                    title="Schedules"
                     data={data}
                     actions={this.actions}
                     paged={this.paged}

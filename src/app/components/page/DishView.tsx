@@ -358,6 +358,7 @@ class DishView extends Component<DishProps, DishState> {
         return (<Fragment>
             <DataPaper>
                 <DataView
+                    title="Dishes"
                     data={data}
                     paged={this.paged}
                     actions={this.actions}

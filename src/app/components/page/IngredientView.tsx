@@ -223,6 +223,7 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
         return (<Fragment>
             <DataPaper>
                 <DataView
+                    title="Ingredients"
                     data={data}
                     paged={this.paged}
                     actions={this.actions}
