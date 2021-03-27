@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from 'react';
-import DataForm, { DataFormCommonProps, DataFormControl, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
+import DataForm, { DataFormCommonProps, DataFormControl, DataFormErrors, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
 import Dish, { RequiredIngredient } from '../../models/Dish';
 import Ingredient from '../../models/Ingredient';
 import { v4 as uuid } from 'uuid';
@@ -253,6 +253,26 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         </Fragment>);
     }
 
+    validate(result: DataFormResult): DataFormErrors {
+        const errors: DataFormErrors = {};
+        
+        const ingredientIds: string[] = [];
+
+        Object.keys(result).forEach(key => {
+            if (key.startsWith('ingredient_')) {
+                const ingredientId = result[key];
+
+                if (ingredientIds.includes(ingredientId)) {
+                    errors[key] = 'This ingredient is added already!'
+                } else {
+                    ingredientIds.push(ingredientId);
+                }
+            }
+        });
+
+        return errors;
+    }
+
     touch() {
         if (this.props.onTouch) {
             this.props.onTouch();
@@ -264,6 +284,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         const props = cloneExcept(this.props, 'onReady');
 
         return (<DataForm {...props}
+            onValidate={this.validate.bind(this)}
             hook={this.hook}
             controls={this.state.controls} 
             layout={this.createLayout.bind(this)} />);
