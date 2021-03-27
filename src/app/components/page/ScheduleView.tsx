@@ -134,13 +134,13 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
     }
 
     private paged: DataViewPaged = {
-        onChange: (offset, limit) => {
-            this.scheduleService.getAll(offset, limit).subscribe(data => {
-                this.setState({ data  });
-            }, error => {
-                this.setState({ data: [] });
-                console.error(error);
-            });
+        onChange: (offset, limit, filter?) => {
+
+            filter = cloneWith(filter, { sort: 'scheduledOn:ASC'});
+
+            return this.scheduleService.getAll(offset, limit, filter).pipe(
+                tap(data => this.setState({ data }), error => this.setState( { data: [] }))
+            );
         }
     };
 
