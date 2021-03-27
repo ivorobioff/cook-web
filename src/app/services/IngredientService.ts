@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { DataFormResult } from "../../support/form/components/DataForm";
 import HttpCommunicator from "../../support/http/HttpCommunicator";
 import Container from "../../support/ioc/Container";
 import Ingredient, { IngredientToPersist } from "../models/Ingredient";
@@ -10,8 +11,8 @@ export default class IngredientService {
         this.http = container.get('https');
     }
 
-    getAll(offset: number, limit: number): Observable<Ingredient[]> {
-        return this.http.get('/ingredients', { offset, limit });
+    getAll(offset: number, limit: number, filter?: DataFormResult): Observable<Ingredient[]> {
+        return this.http.get('/ingredients', { offset, limit, ...filter });
     }
 
     getAllLightweight(): Observable<Ingredient[]> {

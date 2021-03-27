@@ -26,7 +26,7 @@ import PopupFormComposite from "../../../support/modal/components/PopupFormCompo
 import IngredientLineForm from "../parts/IngredientLineForm";
 import { manyOptionsFilter, sorting, textFilter } from "../../../support/data/components/query/controls";
 import { ingredientsToValues } from "../../random/utils";
-import CellNote from "../parts/CellNote";
+import NoteCell from "../parts/NoteCell";
 
 interface DishProps {
     container: Container;
@@ -98,7 +98,7 @@ class DishView extends Component<DishProps, DishState> {
             },
             {
                 name: 'notes',
-                component: (dish: Dish) => (<CellNote content={dish.notes} />)
+                component: (dish: Dish) => (<NoteCell content={dish.notes} />)
             },
             {
                 name: 'requiredIngredients',

@@ -13,6 +13,7 @@ import { checkZeroOrPositiveInt } from "../../../support/validation/validators";
 import { toNumber } from "../../../support/mapping/converters";
 import PopupForm from "../../../support/modal/components/PopupForm";
 import Confirmation from "../../../support/modal/components/Confirmation";
+import { textFilter } from "../../../support/data/components/query/controls";
 
 
 interface IngredientProps {
@@ -42,7 +43,12 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
 
     columns: DataViewColumn[] = [
         {
-            name: 'name'
+            name: 'name',
+            query: {
+                controls: [
+                    textFilter('name')
+                ]
+            }
         },
         {
             name: 'quantity',
@@ -78,13 +84,10 @@ export default class IngredientView extends Component<IngredientProps, Ingredien
     }];
 
     private paged: DataViewPaged = {
-        onChange: (offset, limit) => {
-            this.ingredientService.getAll(offset, limit).subscribe(data => {
-                this.setState({ data  });
-            }, error => {
-                this.setState({ data: [] });
-                console.error(error);
-            });
+        onChange: (offset, limit, filter?) => {
+            return this.ingredientService.getAll(offset, limit, filter).pipe(
+                tap(data => this.setState({ data }), error => this.setState({ data: [] }))
+            );
         }
     };
     
