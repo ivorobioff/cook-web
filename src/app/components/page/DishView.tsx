@@ -17,7 +17,7 @@ import Confirmation from "../../../support/modal/components/Confirmation";
 import HistoryService from "../../services/HistoryService";
 import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
-import { Waste } from "../../models/History";
+import History, { Waste } from "../../models/History";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import ScheduleService from "../../services/ScheduleService";
 import { formatMoment } from "../../../support/mapping/converters";
@@ -124,7 +124,8 @@ class DishView extends Component<DishProps, DishState> {
 
     historyColumns: DataViewColumn[] = [
         {
-            name: 'notes'
+            name: 'notes',
+            component: (history: History) => (<NoteCell content={history.notes} />)
         },
         {
             name: 'wastes',
