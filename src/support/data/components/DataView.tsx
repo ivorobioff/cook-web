@@ -53,6 +53,9 @@ const styles = (theme: Theme) => createStyles({
     },
     loadingFailed: {
         marginTop: theme.spacing(1),
+    },
+    atomicTitle: {
+        whiteSpace: 'nowrap'
     }
 });
 
@@ -292,10 +295,12 @@ class DataView extends Component<DataViewProps, DataViewState> {
                                 return (<TableCell 
                                     key={`c-${i}`} 
                                     align={resolveAlignment(column)}>
-                                        <span className={this.resolveColumnClasses(column)}
-                                            onClick={e => this.clickOnColumn(e, column)}>{resolveTitle(column)}</span>
-                                            { this.renderFilterIcon(column) }
-                                            { this.renderSortIcon(column)  }
+                                            <div className={classes.atomicTitle}>
+                                                <span className={this.resolveColumnClasses(column)}
+                                                    onClick={e => this.clickOnColumn(e, column)}>{resolveTitle(column)}</span>
+                                                    { this.renderFilterIcon(column) }
+                                                    { this.renderSortIcon(column)  }
+                                            </div>
                                         </TableCell>);
                             })}
                             {actions.map((action, i) => {
