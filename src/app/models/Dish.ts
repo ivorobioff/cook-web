@@ -1,13 +1,11 @@
-import Ingredient from "./Ingredient";
 
 export interface RequiredIngredient {
-    ingredient?: Ingredient;
-    ingredientId: string;
+    name: string;
     quantity: number;
 }
 
 export interface RequiredIngredientToPersist {
-    ingredientId: string;
+    name: string;
     quantity: number;
 }
 

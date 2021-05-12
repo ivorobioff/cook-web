@@ -1,5 +1,5 @@
 import { createStyles, Theme, withStyles } from '@material-ui/core';
-import React, { Component, Fragment, ReactElement } from 'react';
+import React, { Component, Fragment } from 'react';
 import Popup from '../../../support/modal/components/Popup';
 import { cloneWith } from '../../../support/random/utils';
 

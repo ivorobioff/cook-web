@@ -4,9 +4,7 @@ import { createStyles } from "@material-ui/styles";
 import Dish, { RequiredIngredient } from "../../models/Dish";
 
 const styles = (theme: Theme) => createStyles({
-    noIngredient: {
-        color: theme.palette.error.dark
-    }
+    
 });
 
 export interface RequiredIngredientOverviewProps {
@@ -22,18 +20,10 @@ class RequiredIngredientOverview extends Component<RequiredIngredientOverviewPro
 
     private renderIngredient(requiredIngredient: RequiredIngredient, i: number): ReactElement {
 
-        const requiredQuantity = requiredIngredient.quantity;
-        const availableQuantity = requiredIngredient.ingredient!.quantity;
-        const name = requiredIngredient.ingredient!.name;
-        const unit = requiredIngredient.ingredient!.unit;
+        const quantity = requiredIngredient.quantity;
+        const name = requiredIngredient!.name;
 
-        const notEnoughClass = requiredQuantity > availableQuantity 
-            ? this.props.classes.noIngredient 
-            : undefined;
-
-        return <div key={`i-${i}`} className={notEnoughClass}>
-            {name} - {requiredQuantity} {unit}
-        </div>
+        return <div key={`i-${i}`}>{name} - {quantity}</div>
     }
 
 

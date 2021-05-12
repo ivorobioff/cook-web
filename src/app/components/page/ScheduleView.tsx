@@ -16,8 +16,6 @@ import { formatMoment } from "../../../support/mapping/converters";
 import Confirmation from "../../../support/modal/components/Confirmation";
 import { AiFillDelete, AiOutlineCheck } from "react-icons/ai";
 import { Box } from "@material-ui/core";
-import Ingredient from "../../models/Ingredient";
-import IngredientService from "../../services/IngredientService";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
@@ -52,15 +50,13 @@ interface ScheduleState {
         open: true,
         schedule: Schedule
     },
-    dishes: Dish[],
-    ingredients: Ingredient[]
+    dishes: Dish[]
 }
 
 class ScheduleView extends Component<ScheduleProps, ScheduleState> {
 
     private scheduleService: ScheduleService;
     private dishService: DishService;
-    private ingredientService: IngredientService;
 
     columns: DataViewColumn[] = [
         {
@@ -110,12 +106,10 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
         
         this.scheduleService = container.get(ScheduleService);
         this.dishService = container.get(DishService);
-        this.ingredientService = container.get(IngredientService);
 
         this.state = {
             data: [],
-            dishes: [],
-            ingredients: []
+            dishes: []
         }
     }
 
@@ -123,12 +117,6 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
         this.dishService.getAllLightweight().subscribe(dishes => {
             this.setState({
                 dishes
-            })
-        });
-
-        this.ingredientService.getAllLightweight().subscribe(ingredients => {
-            this.setState({
-                ingredients
             })
         });
     }
@@ -288,8 +276,7 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
                         type: 'form',
                         component: props => <IngredientLineForm
                             { ...props }
-                            dish={this.state.finish!.schedule.dish} 
-                            ingredients={this.state.ingredients} />
+                            dish={this.state.finish!.schedule.dish} />
                     }
                 ]}
                 onClose={this.closeFinisher.bind(this)}

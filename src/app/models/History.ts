@@ -1,7 +1,6 @@
 export interface Waste {
-    ingredientName: string;
-    ingredientUnit: string;
-    quantity: number;
+    ingredient: string;
+    quantity: string;
 }
 
 export default interface History {

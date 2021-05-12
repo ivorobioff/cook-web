@@ -5,13 +5,11 @@ import DataPaper from "../../../support/data/components/DataPaper";
 import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
 import Container from "../../../support/ioc/Container";
 import Dish, { DishToPersist } from "../../models/Dish";
-import Ingredient from "../../models/Ingredient";
 import DishService from "../../services/DishService";
 import DataForm, { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
 import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayExcept } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import PopupForm from "../../../support/modal/components/PopupForm";
-import IngredientService from "../../services/IngredientService";
 import { AiFillDelete, AiOutlineCalendar, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
 import Confirmation from "../../../support/modal/components/Confirmation";
 import HistoryService from "../../services/HistoryService";
@@ -24,8 +22,7 @@ import { formatMoment } from "../../../support/mapping/converters";
 import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
 import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
-import { manyOptionsFilter, sorting, textFilter } from "../../../support/data/components/query/controls";
-import { ingredientsToValues } from "../../random/utils";
+import { sorting, textFilter } from "../../../support/data/components/query/controls";
 import NoteCell from "../parts/NoteCell";
 
 interface DishProps {
@@ -35,7 +32,6 @@ interface DishProps {
 
 interface DishState {
     data: Dish[],
-    ingredients: Ingredient[],
     persister?: {
         intent: 'create' | 'edit',
         dish?: Dish,
@@ -58,6 +54,10 @@ interface DishState {
     }
 }
 
+function toRequiredIngredient(name: string, quantity: string): {[name: string]: string} {
+    return { name, quantity }
+}
+
 const styles = (theme: Theme) => createStyles({
     noIngredient: {
         color: theme.palette.error.dark
@@ -67,7 +67,6 @@ const styles = (theme: Theme) => createStyles({
 class DishView extends Component<DishProps, DishState> {
 
     private dishService: DishService;
-    private ingredientService: IngredientService;
     private historyService: HistoryService;
     private scheduleService: ScheduleService;
 
@@ -98,16 +97,16 @@ class DishView extends Component<DishProps, DishState> {
             },
             {
                 name: 'notes',
+                query: {
+                    controls: [
+                        textFilter('notes')
+                    ]
+                },
                 component: (dish: Dish) => (<NoteCell content={dish.notes} />)
             },
             {
                 name: 'requiredIngredients',
-                component: dish => (<RequiredIngredientOverview dish={dish} />),
-                query: {
-                    controls: [
-                        manyOptionsFilter('ingredientIds', ingredientsToValues(this.state.ingredients))
-                    ]
-                }
+                component: dish => (<RequiredIngredientOverview dish={dish} />)
             },
             {
                 name: 'lastFinishedAt',
@@ -132,7 +131,7 @@ class DishView extends Component<DishProps, DishState> {
             title: 'Ingredients Used',
             component: history => (<Fragment>
                 {history.wastes.map((waste: Waste, i: number) => {
-                    return (<div key={`i-${i}`}>{ waste.ingredientName } - {waste.quantity} {waste.ingredientUnit}</div>)
+                    return (<div key={`i-${i}`}>{ waste.ingredient } - {waste.quantity}</div>)
                 })}
             </Fragment>)
         },
@@ -212,24 +211,14 @@ class DishView extends Component<DishProps, DishState> {
         super(props);
 
         this.dishService = props.container.get(DishService);
-        this.ingredientService = props.container.get(IngredientService);
         this.historyService = props.container.get(HistoryService);
         this.scheduleService = props.container.get(ScheduleService);
 
         this.state = {
-            data: [],
-            ingredients: []
+            data: []
         }
     }
 
-    componentDidMount() {
-        this.ingredientService.getAllLightweight().subscribe(ingredients => {
-            this.setState({
-                ingredients
-            })
-        });
-    }
-    
     openPersisterForCreate() {
         this.setState({
             persister: cloneWith(this.state.persister, {
@@ -380,8 +369,8 @@ class DishView extends Component<DishProps, DishState> {
                         type: 'form',
                         component: props => (<IngredientLineForm { ...props} 
                             wasteFieldName="requiredIngredients"
-                            dish={this.state.persister!.dish} 
-                            ingredients={this.state.ingredients} />)
+                            fromWaste={ toRequiredIngredient }
+                            dish={this.state.persister!.dish} />)
                     }
                 ]}
                 onClose={this.closePersister.bind(this)}

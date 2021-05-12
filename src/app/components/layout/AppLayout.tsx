@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import FlameLayout, { UserMenuOptions } from '../../../support/layout/components/FlameLayout';
-import ScatterPlotIcon from '@material-ui/icons/ScatterPlot';
 import RestaurantIcon from '@material-ui/icons/Restaurant';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import Container from '../../../support/ioc/Container';
@@ -19,10 +18,6 @@ const mainMenu = {
         title: 'Dishes',
         path: '/dishes',
         icon: <RestaurantIcon />
-    },{
-        title: 'Ingredients',
-        path: '/ingredients',
-        icon: <ScatterPlotIcon />
     }]
 }
 

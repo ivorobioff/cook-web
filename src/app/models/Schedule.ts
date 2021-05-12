@@ -13,8 +13,8 @@ export interface ScheduleToPersist {
 }
 
 export interface Waste {
-    ingredientId: string;
-    quantity: number;
+    ingredient: string;
+    quantity: string;
 }
 
 export interface FinishedSchedule {

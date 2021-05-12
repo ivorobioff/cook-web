@@ -13,8 +13,6 @@ import { createBrowserHistory } from 'history';
 import AuthLayout from './support/auth/components/AuthLayout';
 import Login  from './support/auth/components/Login';
 import PrivateRoute from './support/auth/components/PrivateRoute';
-import IngredientService from './app/services/IngredientService';
-import IngredientView from './app/components/page/IngredientView';
 import DishView from './app/components/page/DishView';
 import ScheduleView from './app/components/page/ScheduleView';
 import DishService from './app/services/DishService';
@@ -35,7 +33,6 @@ container.registerFactory('env', () => {
     }, window.__ENV__);
 });
 
-container.registerType(IngredientService);
 container.registerType(DishService);
 container.registerType(ScheduleService);
 container.registerType(HistoryService);
@@ -96,11 +93,6 @@ class App extends Component<AppProps, AppState> {
                 <PrivateRoute container={container} exact path={['/dishes']}>
                     <AppLayout container={container}>
                         <DishView container={container} />
-                    </AppLayout>
-                </PrivateRoute>
-                <PrivateRoute container={container} exact path={['/ingredients']}>
-                    <AppLayout container={container}>
-                        <IngredientView container={container} />
                     </AppLayout>
                 </PrivateRoute>
                 <Route exact path="/sign-in">

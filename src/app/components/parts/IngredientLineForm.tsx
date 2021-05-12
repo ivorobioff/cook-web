@@ -1,18 +1,10 @@
 import React, { Component, Fragment, ReactElement } from 'react';
 import DataForm, { DataFormCommonProps, DataFormControl, DataFormErrors, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
 import Dish, { RequiredIngredient } from '../../models/Dish';
-import Ingredient from '../../models/Ingredient';
 import { v4 as uuid } from 'uuid';
-import { checkPositiveInt } from '../../../support/validation/validators';
-import { toNumber } from '../../../support/mapping/converters';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
 import { cloneExcept } from '../../../support/random/utils';
-import { ingredientsToValues } from '../../random/utils';
-
-function makeQuantityLabel(unit?: string): string {
-    return unit ? `Quantity (${unit})` : 'Quantity';
-}
 
 function makeQuantityName(lineId: string) {
     return 'quantity_' + lineId;
@@ -24,9 +16,9 @@ function makeIngredientName(lineId: string) {
 
 export interface IngredientLineFormProps extends DataFormCommonProps {
     dish?: Dish;
-    ingredients: Ingredient[];
     classes: {[name: string]: string};
     wasteFieldName?: string;
+    fromWaste?: (ingredient: string, quantity: string) => {[name: string]: string};
 }
 
 interface IngredientLineFormState {
@@ -80,14 +72,6 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
                 : this.createControls(uuid())
         }
 
-        if (this.props.ingredients !== prevProps.ingredients) {
-            controls = [];
-            this.state.controls.forEach(control => {
-                control.values = ingredientsToValues(this.props.ingredients);
-                controls.push(control);
-            });
-        }
-
         if (controls !== this.state.controls) {
             this.setState({ controls });
         }
@@ -95,7 +79,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     
 
     private defineControls(options: {
-        action: 'fresh' | 'add' | 'remove' | 'update',
+        action: 'fresh' | 'add' | 'remove',
         lineId: string,
         unit?: string,
         requiredIngredients?: RequiredIngredient[]
@@ -114,12 +98,6 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             if (options.action !== 'remove' || (control.name !== ingredientName && control.name !== quantityName)) {
                 controls.push(control);   
             }
-
-            if (options.action === 'update') {
-                if (control.name === quantityName) {
-                    control.label = makeQuantityLabel(options.unit);
-                }
-            }
         });
 
         if (['fresh', 'add'].includes(options.action)) {
@@ -132,28 +110,16 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     private createControls(lineId: string, requiredIngredient?: RequiredIngredient): DataFormControl[] {
         return [
             {
-                type: 'autocomplete',
+                type: 'text',
                 label: 'Ingredient',
                 name: makeIngredientName(lineId),
-                values: ingredientsToValues(this.props.ingredients),
-                onInput: (v: any) => {
-                    this.setState({
-                        controls: this.defineControls({
-                            action: 'update',
-                            lineId,
-                            unit: v ? this.props.ingredients.find(ingredient => ingredient.id === v)!.unit : undefined
-                        })
-                    });
-                },
                 required: true,
-                value: requiredIngredient?.ingredientId
+                value: requiredIngredient?.name
             },
             {
                 type: 'text',
-                label: makeQuantityLabel(requiredIngredient?.ingredient?.unit),
+                label: 'Quantity',
                 name: makeQuantityName(lineId),
-                validate: checkPositiveInt,
-                convertOut: toNumber,
                 required: true,
                 value: requiredIngredient?.quantity
             }
@@ -194,13 +160,13 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         this.touch();
     }
 
-    private extractWastes(data: DataFormResult): { ingredientId: string; quantity: number }[] {
+    private extractWastes(data: DataFormResult): {[name: string]: string}[] {
         const quantities: {[name: string]: string} = {};
-        const ingredientIds: {[name: string]: string} = {};
+        const ingredients: {[name: string]: string} = {};
 
         Object.keys(data).forEach(key => {
             if (key.startsWith('ingredient_')) {
-                ingredientIds[key.split('_')[1]] = data[key];
+                ingredients[key.split('_')[1]] = data[key];
             }
 
             if (key.startsWith('quantity_')) {
@@ -208,10 +174,20 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             }
         });
 
-        return Object.keys(ingredientIds).map(key => ({
-            ingredientId: ingredientIds[key],
-            quantity: parseInt(quantities[key])
-        }));
+        const fromWaste = this.props.fromWaste
+
+        return Object.keys(ingredients).map(key => {
+
+            const ingredient = ingredients[key];
+            const quantity = quantities[key];
+    
+
+            if (fromWaste) {
+                return fromWaste(ingredient, quantity);
+            }
+
+            return { ingredient, quantity };
+        });
     }
     
     createLayout(registry: DataFormRendererRegistry): ReactElement {
@@ -256,16 +232,16 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     validate(result: DataFormResult): DataFormErrors {
         const errors: DataFormErrors = {};
         
-        const ingredientIds: string[] = [];
+        const ingredients: string[] = [];
 
         Object.keys(result).forEach(key => {
             if (key.startsWith('ingredient_')) {
-                const ingredientId = result[key];
+                const ingredient = (result[key] as string).toLowerCase();
 
-                if (ingredientIds.includes(ingredientId)) {
+                if (ingredients.includes(ingredient)) {
                     errors[key] = 'This ingredient is added already!'
                 } else {
-                    ingredientIds.push(ingredientId);
+                    ingredients.push(ingredient);
                 }
             }
         });
