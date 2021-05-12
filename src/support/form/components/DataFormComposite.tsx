@@ -9,6 +9,7 @@ export interface DataFormCompositeInternalProps extends DataFormCommonProps {
 interface DataFormCompositeInternalElement {
     hook?: DataFormHook;
     source: DataFormCompositeElement;
+    failed: boolean;
 }
 
 export type DataFormCompositeComponentProvider = (props: DataFormCompositeInternalProps) => ReactElement;
@@ -44,7 +45,8 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
     private createInternalElements(elements: DataFormCompositeElement[]): DataFormCompositeInternalElement[] {
         return elements.map(element => ({
             source: element,
-            hook: element.type === 'form' ? new DataFormHook()  : undefined  
+            hook: element.type === 'form' ? new DataFormHook()  : undefined,
+            failed: false
         }));
     }
     
@@ -107,15 +109,27 @@ class DataFormComposite extends Component<DataFormCompositeProps, DataFormCompos
                     return (<Fragment key={`e-${i}`}>{component}</Fragment>);
                 }
                 
-                const internalProps = cloneWith(cloneExcept(this.props, 'onValidate'), {
+                const internalProps = cloneWith(cloneExcept(this.props, 'onValidate', 'onError'), {
                     unwrap: true,
                     hook,
-                    errors
+                    errors,
+                    onError: (failed: boolean) => this.fail(element, failed)
                 });
 
                 return (<Fragment key={`e-${i}`}>{component(internalProps)}</Fragment>);
             }) }
         </form>)
+    }
+
+    private fail(element: DataFormCompositeInternalElement, failed: boolean) {
+        element.failed = failed;
+
+        const onError = this.props.onError;
+        const elements = this.state.elements;
+
+        if (onError) {
+            onError(!!elements.find(e => e.failed));
+        }
     }
 
     componentDidUpdate(prevProps: DataFormCompositeProps) {
