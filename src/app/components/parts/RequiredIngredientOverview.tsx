@@ -1,7 +1,7 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Theme, withStyles } from "@material-ui/core";
 import { createStyles } from "@material-ui/styles";
-import Dish, { RequiredIngredient } from "../../models/Dish";
+import Dish, { Ingredient } from "../../models/Dish";
 
 const styles = (theme: Theme) => createStyles({
     
@@ -18,10 +18,10 @@ export interface RequiredIngredientOverviewState {
 
 class RequiredIngredientOverview extends Component<RequiredIngredientOverviewProps, RequiredIngredientOverviewState> {
 
-    private renderIngredient(requiredIngredient: RequiredIngredient, i: number): ReactElement {
+    private renderIngredient(ingredient: Ingredient, i: number): ReactElement {
 
-        const quantity = requiredIngredient.quantity;
-        const name = requiredIngredient!.name;
+        const quantity = ingredient.quantity;
+        const name = ingredient!.name;
 
         return <div key={`i-${i}`}>{name} - {quantity}</div>
     }
@@ -29,7 +29,7 @@ class RequiredIngredientOverview extends Component<RequiredIngredientOverviewPro
 
     render() {
         return (<Fragment>
-            {this.props.dish.requiredIngredients!.map(this.renderIngredient.bind(this))}
+            {this.props.dish.ingredients!.map(this.renderIngredient.bind(this))}
         </Fragment>);
     }
 }

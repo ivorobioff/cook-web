@@ -4,7 +4,7 @@ import DataActionArea from "../../../support/data/components/DataActionArea";
 import DataPaper from "../../../support/data/components/DataPaper";
 import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
 import Container from "../../../support/ioc/Container";
-import Dish, { DishToPersist } from "../../models/Dish";
+import Dish, { DishToPersist, Ingredient } from "../../models/Dish";
 import DishService from "../../services/DishService";
 import DataForm, { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
 import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayExcept } from "../../../support/random/utils";
@@ -15,7 +15,7 @@ import Confirmation from "../../../support/modal/components/Confirmation";
 import HistoryService from "../../services/HistoryService";
 import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
-import History, { Waste } from "../../models/History";
+import History from "../../models/History";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import ScheduleService from "../../services/ScheduleService";
 import { formatMoment } from "../../../support/mapping/converters";
@@ -54,14 +54,8 @@ interface DishState {
     }
 }
 
-function toRequiredIngredient(name: string, quantity: string): {[name: string]: string} {
-    return { name, quantity }
-}
-
 const styles = (theme: Theme) => createStyles({
-    noIngredient: {
-        color: theme.palette.error.dark
-    }
+    
 });
 
 class DishView extends Component<DishProps, DishState> {
@@ -105,7 +99,7 @@ class DishView extends Component<DishProps, DishState> {
                 component: (dish: Dish) => (<NoteCell content={dish.notes} />)
             },
             {
-                name: 'requiredIngredients',
+                name: 'ingredients',
                 component: dish => (<RequiredIngredientOverview dish={dish} />)
             },
             {
@@ -127,11 +121,11 @@ class DishView extends Component<DishProps, DishState> {
             component: (history: History) => (<NoteCell content={history.notes} />)
         },
         {
-            name: 'wastes',
+            name: 'ingredients',
             title: 'Ingredients Used',
             component: history => (<Fragment>
-                {history.wastes.map((waste: Waste, i: number) => {
-                    return (<div key={`i-${i}`}>{ waste.ingredient } - {waste.quantity}</div>)
+                {history.ingredients.map((ingredient: Ingredient, i: number) => {
+                    return (<div key={`i-${i}`}>{ ingredient.name } - {ingredient.quantity}</div>)
                 })}
             </Fragment>)
         },
@@ -367,10 +361,7 @@ class DishView extends Component<DishProps, DishState> {
                     },
                     {
                         type: 'form',
-                        component: props => (<IngredientLineForm { ...props} 
-                            wasteFieldName="requiredIngredients"
-                            fromWaste={ toRequiredIngredient }
-                            dish={this.state.persister!.dish} />)
+                        component: props => (<IngredientLineForm { ...props} dish={this.state.persister!.dish} />)
                     }
                 ]}
                 onClose={this.closePersister.bind(this)}

@@ -1,7 +1,4 @@
-export interface Waste {
-    ingredient: string;
-    quantity: string;
-}
+import { Ingredient } from "./Dish";
 
 export default interface History {
     id: string;
@@ -9,5 +6,5 @@ export default interface History {
     notes: string;
     scheduledOn: string;
     finishedAt: string;
-    wastes: Waste[];
+    ingredients: Ingredient[];
 }

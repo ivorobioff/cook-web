@@ -1,24 +1,24 @@
 
-export interface RequiredIngredient {
+export interface Ingredient {
     name: string;
-    quantity: number;
+    quantity: string;
 }
 
-export interface RequiredIngredientToPersist {
+export interface IngredientToPersist {
     name: string;
-    quantity: number;
+    quantity: string;
 }
 
 export default interface Dish {
     id: string;
     name: string;
     notes: string;
-    requiredIngredients: RequiredIngredient[];
+    ingredients: Ingredient[];
     lastFinishedAt?: string;
 }
 
 export interface DishToPersist {
     name: string;
     notes: string;
-    requiredIngredients: RequiredIngredientToPersist[];
+    ingredients: IngredientToPersist[];
 }

@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from 'react';
 import DataForm, { DataFormCommonProps, DataFormControl, DataFormErrors, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
-import Dish, { RequiredIngredient } from '../../models/Dish';
+import Dish, { Ingredient } from '../../models/Dish';
 import { v4 as uuid } from 'uuid';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
@@ -17,8 +17,6 @@ function makeIngredientName(lineId: string) {
 export interface IngredientLineFormProps extends DataFormCommonProps {
     dish?: Dish;
     classes: {[name: string]: string};
-    wasteFieldName?: string;
-    fromWaste?: (ingredient: string, quantity: string) => {[name: string]: string};
 }
 
 interface IngredientLineFormState {
@@ -57,7 +55,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
                     return data;
                 }
 
-                return { [props.wasteFieldName || 'wastes']: this.extractWastes(data) }
+                return { ingredients: this.extractIngredients(data) }
             }
         }
     }
@@ -81,8 +79,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
     private defineControls(options: {
         action: 'fresh' | 'add' | 'remove',
         lineId: string,
-        unit?: string,
-        requiredIngredients?: RequiredIngredient[]
+        unit?: string
     }): DataFormControl[] {
 
         const controls: DataFormControl[] = [];
@@ -107,21 +104,21 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         return controls;
     }
 
-    private createControls(lineId: string, requiredIngredient?: RequiredIngredient): DataFormControl[] {
+    private createControls(lineId: string, ingredient?: Ingredient): DataFormControl[] {
         return [
             {
                 type: 'text',
                 label: 'Ingredient',
                 name: makeIngredientName(lineId),
                 required: true,
-                value: requiredIngredient?.name
+                value: ingredient?.name
             },
             {
                 type: 'text',
                 label: 'Quantity',
                 name: makeQuantityName(lineId),
                 required: true,
-                value: requiredIngredient?.quantity
+                value: ingredient?.quantity
             }
         ];
     }
@@ -130,8 +127,8 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
 
         const controls: DataFormControl[] = [];
 
-        dish.requiredIngredients.forEach(requiredIngredient => {
-            this.createControls(uuid(), requiredIngredient)
+        dish.ingredients.forEach(ingredient => {
+            this.createControls(uuid(), ingredient)
                 .forEach(control => controls.push(control));
         });
 
@@ -160,7 +157,7 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
         this.touch();
     }
 
-    private extractWastes(data: DataFormResult): {[name: string]: string}[] {
+    private extractIngredients(data: DataFormResult): { name: string, quantity: string }[] {
         const quantities: {[name: string]: string} = {};
         const ingredients: {[name: string]: string} = {};
 
@@ -174,19 +171,11 @@ class IngredientLineForm extends Component<IngredientLineFormProps, IngredientLi
             }
         });
 
-        const fromWaste = this.props.fromWaste
-
         return Object.keys(ingredients).map(key => {
-
-            const ingredient = ingredients[key];
-            const quantity = quantities[key];
-    
-
-            if (fromWaste) {
-                return fromWaste(ingredient, quantity);
-            }
-
-            return { ingredient, quantity };
+            return { 
+                name: ingredients[key], 
+                quantity: quantities[key] 
+            };
         });
     }
     
