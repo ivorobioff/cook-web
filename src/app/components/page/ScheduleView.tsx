@@ -60,13 +60,11 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
 
     columns: DataViewColumn[] = [
         {
-            name: 'dishName',
-            path: 'dish.name',
-            title: 'Scheduled Dish'
+            name: 'scheduledDish',
+            path: 'dish.name'
         },
         {
             name: 'requiredIngredients',
-            title: 'Required Ingredients',
             component: schedule => (<RequiredIngredientOverview dish={schedule.dish} />)
         },
         {

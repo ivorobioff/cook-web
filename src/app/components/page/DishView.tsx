@@ -100,6 +100,7 @@ class DishView extends Component<DishProps, DishState> {
             },
             {
                 name: 'ingredients',
+                title: 'Required Ingredients',
                 component: dish => (<RequiredIngredientOverview dish={dish} />)
             },
             {
