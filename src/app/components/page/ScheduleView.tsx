@@ -10,6 +10,7 @@ import { Box } from "@material-ui/core";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import IngredientLineForm from "../parts/IngredientLineForm";
 import { checkAll, checkMoment, checkPresentOrFuture, cloneArrayExcept, cloneArrayWith, cloneWith, Confirmation, Container, DataActionArea, DataForm, DataFormControl, DataFormResult, DataPaper, DataView, DataViewAction, DataViewColumn, DataViewPaged, formatMoment, PopupForm, PopupFormComposite }  from '@ivorobioff/techmoodivns-support';
+import NoteCell from "../parts/NoteCell";
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
     const result: {[name: string]: string} = {};
@@ -53,8 +54,12 @@ class ScheduleView extends Component<ScheduleProps, ScheduleState> {
             path: 'dish.name'
         },
         {
+            name: 'notes',
+            component: (schedule: Schedule) => (<NoteCell content={schedule.dish.notes} />)
+        },
+        {
             name: 'requiredIngredients',
-            component: schedule => (<RequiredIngredientOverview dish={schedule.dish} />)
+            component: (schedule: Schedule) => (<RequiredIngredientOverview dish={schedule.dish} />)
         },
         {
             name: 'scheduledOn',

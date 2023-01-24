@@ -20,7 +20,7 @@ const site = {
 container.registerFactory('env', () => {
     return cloneWith({
         site,
-        apiBaseUrl: 'http://cook.familythings.cloud/api/v1.0',
+        apiBaseUrl: 'http://localhost:8080/api/v1.0',
     }, window.__ENV__);
 });
 
