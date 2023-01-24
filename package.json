@@ -1,9 +1,9 @@
 {
-  "name": "opi-web",
-  "version": "0.1.0",
-  "private": true,
+  "name": "cook-web",
+  "version": "1.0.0",
   "dependencies": {
     "@date-io/moment": "^1.3.13",
+    "@ivorobioff/techmoodivns-support": "2.3.23",
     "@material-ui/core": "^4.9.7",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.47",
@@ -33,7 +33,7 @@
     "rxjs": "^6.5.5",
     "serve": "^11.3.0",
     "typeface-roboto": "0.0.75",
-    "typescript": "^3.7.5",
+    "typescript": "4.5.4",
     "uuid": "^8.3.2"
   },
   "scripts": {

@@ -1,7 +1,5 @@
 import { Observable } from "rxjs";
-import { DataFormResult } from "../../support/form/components/DataForm";
-import HttpCommunicator from "../../support/http/HttpCommunicator";
-import Container from "../../support/ioc/Container";
+import { Container, DataFormResult, HttpCommunicator }  from '@ivorobioff/techmoodivns-support';
 import Schedule, { FinishedSchedule, ScheduleToPersist } from "../models/Schedule";
 
 export default class ScheduleService {

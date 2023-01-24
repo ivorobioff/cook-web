@@ -1,29 +1,17 @@
 import React, { Component, Fragment } from "react";
 import { withStyles, createStyles, Theme, Box } from "@material-ui/core";
-import DataActionArea from "../../../support/data/components/DataActionArea";
-import DataPaper from "../../../support/data/components/DataPaper";
-import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
-import Container from "../../../support/ioc/Container";
 import Dish, { DishToPersist, Ingredient } from "../../models/Dish";
 import DishService from "../../services/DishService";
-import DataForm, { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
-import { cloneArray, cloneArrayWith, cloneWith, transferTo, ucFirst, cloneArrayExcept } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
-import PopupForm from "../../../support/modal/components/PopupForm";
 import { AiFillDelete, AiOutlineCalendar, AiOutlineEdit, AiOutlineHistory } from "react-icons/ai";
-import Confirmation from "../../../support/modal/components/Confirmation";
 import HistoryService from "../../services/HistoryService";
-import Popup from "../../../support/modal/components/Popup";
 import moment from 'moment';
 import History from "../../models/History";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
 import ScheduleService from "../../services/ScheduleService";
-import { formatMoment } from "../../../support/mapping/converters";
-import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
-import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
-import { sorting, textFilter } from "../../../support/data/components/query/controls";
 import NoteCell from "../parts/NoteCell";
+import { checkAll, checkMoment, checkPresentOrFuture, cloneArray, cloneArrayExcept, cloneArrayWith, cloneWith, Confirmation, Container, DataActionArea, DataForm, DataFormControl, DataFormResult, DataPaper, DataView, DataViewAction, DataViewColumn, DataViewPaged, formatMoment, Popup, PopupForm, PopupFormComposite, sorting, textFilter, transferTo, ucFirst }  from '@ivorobioff/techmoodivns-support';
 
 interface DishProps {
     container: Container;

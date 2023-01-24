@@ -1,7 +1,5 @@
 import { Observable } from "rxjs";
-import { normalizeQuery } from "../../support/data/random/utils";
-import HttpCommunicator from "../../support/http/HttpCommunicator";
-import Container from "../../support/ioc/Container";
+import {  Container, HttpCommunicator, normalizeQuery } from '@ivorobioff/techmoodivns-support';
 import Dish, { DishToPersist } from "../models/Dish";
 
 export default class DishService {

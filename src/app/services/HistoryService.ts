@@ -1,6 +1,5 @@
 import { Observable } from "rxjs";
-import HttpCommunicator from "../../support/http/HttpCommunicator";
-import Container from "../../support/ioc/Container";
+import { Container, HttpCommunicator }  from '@ivorobioff/techmoodivns-support';
 
 export default class HistoryService {
     private http: HttpCommunicator;

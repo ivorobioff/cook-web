@@ -1,23 +1,14 @@
 import React, { Component } from 'react';
 import {Route, Router, Switch } from 'react-router-dom';
 import AppLayout from './app/components/layout/AppLayout';
-import Container from './support/ioc/Container';
-import { Authenticator } from './support/auth/Authenticator';
-import HttpCommunicator from './support/http/HttpCommunicator';
-import secretHeaderProvider from './support/auth/secretHeaderProvider';
-import forbiddenErrorHandler from './support/auth/forbiddenErrorHandler';
-import Environment from './support/env/Environment';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
-import { cloneWith } from './support/random/utils';
 import { createBrowserHistory } from 'history';
-import AuthLayout from './support/auth/components/AuthLayout';
-import Login  from './support/auth/components/Login';
-import PrivateRoute from './support/auth/components/PrivateRoute';
 import DishView from './app/components/page/DishView';
 import ScheduleView from './app/components/page/ScheduleView';
 import DishService from './app/services/DishService';
 import ScheduleService from './app/services/ScheduleService';
 import HistoryService from './app/services/HistoryService';
+import { Authenticator, AuthLayout, cloneWith, Container, Environment, forbiddenErrorHandler, HttpCommunicator, Login, PrivateRoute, secretHeaderProvider }  from '@ivorobioff/techmoodivns-support';
 
 const container = new Container();
 
@@ -29,7 +20,7 @@ const site = {
 container.registerFactory('env', () => {
     return cloneWith({
         site,
-        apiBaseUrl: 'http://localhost:8080/api/v1.0',
+        apiBaseUrl: 'http://cook.familythings.cloud/api/v1.0',
     }, window.__ENV__);
 });
 

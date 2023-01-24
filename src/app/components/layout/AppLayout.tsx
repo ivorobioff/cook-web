@@ -1,12 +1,8 @@
 import React, { Component } from 'react';
-import FlameLayout, { UserMenuOptions } from '../../../support/layout/components/FlameLayout';
 import RestaurantIcon from '@material-ui/icons/Restaurant';
 import ScheduleIcon from '@material-ui/icons/Schedule';
-import Container from '../../../support/ioc/Container';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { Authenticator } from '../../../support/auth/Authenticator';
-import { cloneWith } from '../../../support/random/utils';
-import Environment from '../../../support/env/Environment';
+import { Authenticator, cloneWith, Container, Environment, FlameLayout, UserMenuOptions }  from '@ivorobioff/techmoodivns-support';
 
 const mainMenu = {
     items: [{

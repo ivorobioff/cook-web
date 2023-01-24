@@ -1,26 +1,15 @@
 import React, { Component, Fragment } from "react"
-import DataView, { DataViewAction, DataViewColumn, DataViewPaged } from "../../../support/data/components/DataView";
-import DataForm, { DataFormControl, DataFormResult } from "../../../support/form/components/DataForm";
-import Container from "../../../support/ioc/Container";
 import Schedule, { FinishedSchedule, ScheduleToPersist } from "../../models/Schedule";
 import ScheduleService from "../../services/ScheduleService";
 import moment from "moment";
-import DataPaper from "../../../support/data/components/DataPaper";
-import DataActionArea from "../../../support/data/components/DataActionArea";
-import PopupForm from "../../../support/modal/components/PopupForm";
-import { cloneArrayExcept, cloneArrayWith, cloneWith } from "../../../support/random/utils";
 import { tap } from "rxjs/operators";
 import Dish from "../../models/Dish";
 import DishService from "../../services/DishService";
-import { formatMoment } from "../../../support/mapping/converters";
-import Confirmation from "../../../support/modal/components/Confirmation";
 import { AiFillDelete, AiOutlineCheck } from "react-icons/ai";
 import { Box } from "@material-ui/core";
 import RequiredIngredientOverview from "../parts/RequiredIngredientOverview";
-import { checkAll, checkMoment, checkPresentOrFuture } from "../../../support/validation/validators";
-import PopupFormComposite from "../../../support/modal/components/PopupFormComposite";
 import IngredientLineForm from "../parts/IngredientLineForm";
-
+import { checkAll, checkMoment, checkPresentOrFuture, cloneArrayExcept, cloneArrayWith, cloneWith, Confirmation, Container, DataActionArea, DataForm, DataFormControl, DataFormResult, DataPaper, DataView, DataViewAction, DataViewColumn, DataViewPaged, formatMoment, PopupForm, PopupFormComposite }  from '@ivorobioff/techmoodivns-support';
 
 function dishesToValues(dishes: Dish[]): {[name: string]: string} {
     const result: {[name: string]: string} = {};

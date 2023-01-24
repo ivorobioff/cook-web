@@ -1,7 +1,6 @@
+import { cloneWith, Popup } from '@ivorobioff/techmoodivns-support';
 import { createStyles, Theme, withStyles } from '@material-ui/core';
 import React, { Component, Fragment } from 'react';
-import Popup from '../../../support/modal/components/Popup';
-import { cloneWith } from '../../../support/random/utils';
 
 export interface NoteCellProps {
     content: string;

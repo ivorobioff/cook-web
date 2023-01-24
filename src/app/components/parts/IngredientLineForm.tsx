@@ -1,10 +1,9 @@
 import React, { Component, Fragment, ReactElement } from 'react';
-import DataForm, { DataFormCommonProps, DataFormControl, DataFormErrors, DataFormHook, DataFormRendererRegistry, DataFormResult } from '../../../support/form/components/DataForm';
+import { cloneExcept, DataForm, DataFormCommonProps, DataFormControl, DataFormErrors, DataFormHook, DataFormRendererRegistry, DataFormResult }  from '@ivorobioff/techmoodivns-support';
 import Dish, { Ingredient } from '../../models/Dish';
 import { v4 as uuid } from 'uuid';
 import { Box, createStyles, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import { GrFormAdd, GrFormClose } from 'react-icons/gr';
-import { cloneExcept } from '../../../support/random/utils';
 
 function makeQuantityName(lineId: string) {
     return 'quantity_' + lineId;
